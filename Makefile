@@ -33,7 +33,12 @@ lint: setup ## Runs all the linters
 
 .PHONY: build
 build: ## Builds the project
-	go build -o $(BUILD)/go-calendar $(CURDIR)/cmd/go-calendar
+	go build -o $(BUILD)/go-calendar $(CURDIR)
+
+# protoc -I=$SRC_DIR --go_out=plugins=grpc:internal/grpc calendarpb/*.proto
+.PHONY: gen
+gen: setup ## Triggers code generation of
+	protoc -I=$SRC_DIR --go_out=$(CURDIR)/internal/grpc $(CURDIR)/calendarpb/*.proto
 
 .PHONY: dockerbuild
 dockerbuild: ## Builds a docker container with a project
@@ -46,7 +51,7 @@ dockerpush: dockerbuild ## Publishes the docker image to the registry
 
 .PHONY: clean
 clean: ## Remove temporary files
-	go clean $(CURDIR)/cmd/go-calendar
+	go clean $(CURDIR)
 	rm -rf $(BUILD)
 	rm -rf coverage.txt
 
