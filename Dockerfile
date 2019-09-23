@@ -1,16 +1,12 @@
-FROM registry.yadro.com/suse/sles15-x86_64:1.1.9
+# This section will be completed in the fifth iteration of the CS
+FROM some_registry.blabla.com/blabla:1.0.0
 
 LABEL key="value"
 
 USER root
 
-#COPY ./build/bin/syr /opt/app/syr/syr
-#COPY ./static/dist /opt/app/syr/static/dist
-#COPY ./pdf/fonts /opt/app/syr/pdf/fonts
-#COPY ./ssl /opt/app/syr/ssl
+COPY ./some/dir /opt/app/
 
-#RUN zypper --quiet --no-gpg-checks install -y -l --no-recommends \
-#	ca-certificates \
-#	ca-certificates-mozilla
-#
-#ENTRYPOINT ["/opt/app/syr/syr", "-stderrthreshold=INFO", "-config", "/opt/app/syr/configuration.json"]
+RUN echo Fifth iteration, bitch.
+
+ENTRYPOINT ["/opt/app/go-calendar/go-calendar", "-c", "/opt/app/go-calendar/configs/config.yaml"]

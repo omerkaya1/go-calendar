@@ -7,7 +7,7 @@ export GOPATH=$(go env GOPATH)
 setup: ## Install all the build and lint dependencies
 	go get -u golang.org/x/tools
 	go get -u golang.org/x/lint/golint
-	go get -u github.com/golang/protobuf/protoc-gen-go
+# 	go get -u github.com/golang/protobuf/protoc-gen-go
 
 .PHONY: mod
 mod: ## Runs mod

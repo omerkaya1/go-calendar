@@ -1,7 +1,8 @@
-syntax = "proto3"
+syntax = "proto3";
 
-import date.proto
+import "google/protobuf/timestamp.proto";
 
+// This section will be completed in the second iteration of the CS
 service GoCalendar {
     // Search returns a Google search result for the query.
     rpc NewEvent(Event) returns (Resposne) {}
@@ -12,10 +13,11 @@ service GoCalendar {
 }
   
 message Event {
-    string user = 1;
-    string eventName = 2;
-    string note = 3;
-    Date date = 4;
+    int64 id = 1;
+    string user = 2;
+    string eventName = 3;
+    string note = 4;
+//    type date = 4;
 }
 
 message Resposne {
