@@ -1,5 +1,7 @@
 package main
 
-func main() {
+//go:generate echo test
 
+func main() {
+	Execute()
 }

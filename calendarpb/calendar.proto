@@ -1,0 +1,24 @@
+syntax = "proto3"
+
+import date.proto
+
+service GoCalendar {
+    // Search returns a Google search result for the query.
+    rpc NewEvent(Event) returns (Resposne) {}
+    rpc GetEvent(Event) returns (Resposne) {}
+    rpc UpdateEvent(Event) returns (Resposne) {}
+    rpc DeleteEvent(Event) returns (Resposne) {}
+    rpc ListEvents(Event) returns (Resposne) {}
+}
+  
+message Event {
+    string user = 1;
+    string eventName = 2;
+    string note = 3;
+    Date date = 4;
+}
+
+message Resposne {
+    string code = 1;
+    string error = 2;
+}
