@@ -5,30 +5,27 @@ import (
 )
 
 const (
-	apiPrefix      = "/"
-	apiVersion     = "v1"
-	createEventURL = "/create"
-	deleteEventURL = "/delete"
-	updateEventURL = "/update"
-	getEventURL    = "/event"
+	apiPrefix  = "/api"
+	apiVersion = "/v1"
+	eventURL   = "/event"
 )
 
-func (s *Server) createEvent(rw http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateEvent(rw http.ResponseWriter, r *http.Request) {
 	// TODO: Implement me!
-	s.Logger.Warn("createEvent triggered")
+	s.Logger.Info("createEvent triggered")
 }
 
-func (s *Server) updateEvent(rw http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 	// TODO: Implement me!
-	s.Logger.Warn("updateEvent triggered")
+	s.Logger.Info("updateEvent triggered")
 }
 
-func (s *Server) deleteEvent(rw http.ResponseWriter, r *http.Request) {
+func (s *Server) DeleteEvent(rw http.ResponseWriter, r *http.Request) {
 	// TODO: Implement me!
-	s.Logger.Warn("deleteEvent triggered")
+	s.Logger.Info("deleteEvent triggered")
 }
 
-func (s *Server) getEvent(rw http.ResponseWriter, r *http.Request) {
+func (s *Server) GetEvent(rw http.ResponseWriter, r *http.Request) {
 	// TODO: Implement me!
-	s.Logger.Warn("getEvent triggered")
+	s.Logger.Info("getEvent triggered")
 }

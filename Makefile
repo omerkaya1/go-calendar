@@ -7,7 +7,7 @@ export GOPATH=$(go env GOPATH)
 setup: ## Install all the build and lint dependencies
 	go get -u golang.org/x/tools
 	go get -u golang.org/x/lint/golint
-# 	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get -u github.com/golang/protobuf/protoc-gen-go
 
 .PHONY: mod
 mod: ## Runs mod
@@ -35,10 +35,10 @@ lint: setup ## Runs all the linters
 build: ## Builds the project
 	go build -o $(BUILD)/go-calendar $(CURDIR)
 
-# protoc -I=$SRC_DIR --go_out=plugins=grpc:internal/grpc calendarpb/*.proto
 .PHONY: gen
-gen: setup ## Triggers code generation of
-	protoc -I=$SRC_DIR --go_out=$(CURDIR)/internal/grpc $(CURDIR)/calendarpb/*.proto
+# gen: setup ## Triggers code generation of
+gen: ## Triggers code generation of
+	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc go-calendar-api/*.proto
 
 .PHONY: dockerbuild
 dockerbuild: ## Builds a docker container with a project

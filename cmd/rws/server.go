@@ -1,7 +1,10 @@
 package rws
 
 import (
+	"github.com/omerkaya1/go-calendar/internal/db"
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
+	"github.com/omerkaya1/go-calendar/internal/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/domain/services"
 	"github.com/omerkaya1/go-calendar/internal/rws"
 	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
@@ -10,57 +13,67 @@ import (
 
 var (
 	cfgPath  string
-	host     string
-	port     string
+	connHost string
+	connPort string
+	dbName   string
+	dbUser   string
+	sslMode  string
 	logLevel int
 )
 
 var ServerCmd = &cobra.Command{
-	Use:   "rws-server",
+	Use: "rws-server",
+	Example: `# Initialise from configuration file
+	go-calendar rws-server -c /path/to/config.json
+
+# Initialise from parameters
+	go-calendar rws-server --host=127.0.0.1 --port=7777 --log=2 --dbname=db_name --dbuser=username`,
 	Short: "Run RESTful Web Service Server",
-	Run: func(cmd *cobra.Command, args []string) {
-		// Config-related part
-		cfg := &conf.Config{}
-		var err error
-
-		if cfgPath != "" {
-			cfg, err = cfgFromFile()
-		} else {
-			cfgFromCmdParams(cfg)
-		}
-
-		if err != nil {
-			log.Fatalf("InitConfig failed: %v", err)
-		}
-		// Logger-related part
-		logger, err := gcl.InitLogger(cfg.LogLevel)
-		if err != nil {
-			log.Fatalf("InitLogger failed: %v", err)
-		}
-		// Init RWS server
-		srv := rws.NewServer(cfg, logger)
-		srv.Run()
-	},
+	Run:   serverStartCmdFunc,
 }
 
 func init() {
-	// NOTE: I'll have to decide how to properly handle server initialisation
-	ServerCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "path to the configuration file")
-	ServerCmd.PersistentFlags().IntVarP(&logLevel, "log", "l", 1, "changes log level")
-	ServerCmd.PersistentFlags().StringVarP(&host, "host", "s", "127.0.0.1", "host address")
-	ServerCmd.PersistentFlags().StringVarP(&port, "port", "p", "7070", "host port")
+	ServerCmd.Flags().StringVarP(&cfgPath, "config", "c", "", "path to the configuration file")
+	ServerCmd.Flags().IntVarP(&logLevel, "log", "l", 1, "changes log level")
+	ServerCmd.Flags().StringVarP(&connHost, "host", "s", "127.0.0.1", "host address")
+	ServerCmd.Flags().StringVarP(&connPort, "port", "p", "7070", "host port")
+	ServerCmd.Flags().StringVarP(&dbName, "dbname", "n", "test", "db name")
+	ServerCmd.Flags().StringVarP(&dbUser, "dbuser", "u", "", "db user")
+	ServerCmd.Flags().StringVarP(&sslMode, "sslmode", "m", "disable", "ssl mode")
 }
 
-func cfgFromFile() (*conf.Config, error) {
-	cfg, err := conf.InitConfig(cfgPath)
-	if err != nil {
-		return nil, err
+func serverStartCmdFunc(cmd *cobra.Command, args []string) {
+	// Config-related part
+	cfg := &conf.Config{}
+	var err error
+	if cfgPath != "" {
+		cfg, err = conf.CfgFromFile(cfgPath)
+	} else {
+		cfg = conf.CfgFromCmdParams(logLevel, connHost, connPort, dbName, dbUser, sslMode)
 	}
-	return cfg, nil
+	if err != nil {
+		log.Fatalf("%s: InitConfig failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+	// Logger-related part
+	logger, err := gcl.InitLogger(cfg.LogLevel)
+	if err != nil {
+		log.Fatalf("%s: InitLogger failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+	// Init DB
+	esp, err := dbFromConfig(cfg.DB)
+	if err != nil {
+		log.Fatalf("%s: dbFromConfig failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+	// Init RWS server
+	srv := rws.NewServer(cfg, logger, esp)
+	srv.Run()
 }
 
-func cfgFromCmdParams(cfg *conf.Config) {
-	cfg.LogLevel = logLevel
-	cfg.Host = host
-	cfg.Port = port
+func dbFromConfig(dbConfig conf.DBConf) (*services.EventService, error) {
+	if dbConfig.Name == "test" {
+		inMemoryDB, err := db.NewInMemoryEventStorage()
+		return &services.EventService{Processor: inMemoryDB}, err
+	}
+	mainDB, err := db.NewMainEventStorage(dbConfig)
+	return &services.EventService{Processor: mainDB}, err
 }

@@ -15,8 +15,9 @@ Path to the configuration file.
 ## TODO
 First iteration (Calendar service, later on just CS):
 ##### Status: in progress
-1) Define Event type;
-2) Create handlers for creating/updating/deleting events.
+1) Define Event type; `DONE`
+2) Create handlers for creating/updating/deleting events. `In Progress`
+3) Keep events in an in-memory fashion (Use `map[string]Event`) `In Progress`
 
 Second iteration (GRPC implementation for the CS):
 ##### Status: backlog

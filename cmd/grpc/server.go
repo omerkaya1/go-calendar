@@ -1,33 +1,83 @@
 package grpc
 
 import (
+	"fmt"
+	"github.com/omerkaya1/go-calendar/internal/db"
+	"github.com/omerkaya1/go-calendar/internal/domain/conf"
+	"github.com/omerkaya1/go-calendar/internal/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/domain/services"
+	"github.com/omerkaya1/go-calendar/internal/grpc"
+	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
 	"log"
 )
 
 var (
 	cfgPath  string
-	cfgType  string
-	host     string
-	port     string
+	connHost string
+	connPort string
+	dbName   string
+	dbUser   string
+	sslMode  string
 	logLevel int
 )
 
 var ServerCmd = &cobra.Command{
 	Use:   "grpc-server",
 	Short: "Run GRPC Server",
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Implement me!")
-		// TODO: there's a whole bunch of things, actually:
-		//	 	 1) Init config from file, if it was supplied
-		//	 	 2) Init config from cli, if 1) was not provided
-	},
+	Example: `# Initialise from configuration file
+go-calendar grpc-server -c /path/to/config.json
+
+# Initialise from parameters
+go-calendar grpc-server --host=127.0.0.1 --port=7777 --log=2 --dbname=db_name --dbuser=username`,
+	Run: serverStartCmdFunc,
 }
 
 func init() {
-	// NOTE: I'll have to decide how to properly handle server initialisation
 	ServerCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "", "path to the configuration file")
 	ServerCmd.PersistentFlags().IntVarP(&logLevel, "log", "l", 1, "changes log level")
-	ServerCmd.PersistentFlags().StringVarP(&host, "host", "s", "127.0.0.1", "host address")
-	ServerCmd.PersistentFlags().StringVarP(&port, "port", "p", "7070", "host port")
+	ServerCmd.PersistentFlags().StringVarP(&connHost, "host", "s", "127.0.0.1", "host address")
+	ServerCmd.PersistentFlags().StringVarP(&connPort, "port", "p", "7070", "host port")
+	ServerCmd.PersistentFlags().StringVarP(&dbName, "dbname", "n", "test", "db name")
+	ServerCmd.PersistentFlags().StringVarP(&dbUser, "dbuser", "u", "", "db user")
+	ServerCmd.PersistentFlags().StringVarP(&sslMode, "sslmode", "m", "disable", "ssl mode")
+}
+
+// TODO: consider using it as a separate method, checking the command's name and calling the corresponding server
+func serverStartCmdFunc(cmd *cobra.Command, args []string) {
+	// Config-related part
+	cfg := &conf.Config{}
+	var err error
+	if cfgPath != "" {
+		cfg, err = conf.CfgFromFile(cfgPath)
+	} else {
+		cfg = conf.CfgFromCmdParams(logLevel, connHost, connPort, dbName, dbUser, sslMode)
+	}
+	if err != nil {
+		log.Fatalf("%s: InitConfig failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+	// Logger-related part
+	logger, err := gcl.InitLogger(cfg.LogLevel)
+	if err != nil {
+		log.Fatalf("%s: InitLogger failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+	// Init DB
+	esp, err := dbFromConfig(cfg.DB)
+	if err != nil {
+		log.Fatalf("%s: dbFromConfig failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+	fmt.Println(cmd.Use)
+	// Init GRPC server
+	srv := grpc.NewServer(cfg, logger, esp)
+	srv.Run()
+}
+
+// TODO: This should be moved somewhere as well
+func dbFromConfig(dbConfig conf.DBConf) (*services.EventService, error) {
+	if dbConfig.Name == "test" {
+		inMemoryDB, err := db.NewInMemoryEventStorage()
+		return &services.EventService{Processor: inMemoryDB}, err
+	}
+	mainDB, err := db.NewMainEventStorage(dbConfig)
+	return &services.EventService{Processor: mainDB}, err
 }
