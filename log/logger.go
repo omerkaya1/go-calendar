@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// InitLogger method sets up a server logger according to the specified log level
 func InitLogger(level int) (*zap.Logger, error) {
 	l := &zap.Logger{}
 	var err error

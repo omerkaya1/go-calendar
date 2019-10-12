@@ -8,11 +8,11 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/domain/parsers"
 	"github.com/omerkaya1/go-calendar/internal/domain/validators"
 	gca "github.com/omerkaya1/go-calendar/internal/grpc/go-calendar-api"
-	"log"
 	"time"
 )
 
 func (s *GoCalendarServer) CreateEvent(ctx context.Context, req *gca.CreateEventRequest) (*gca.ResponseWithEventID, error) {
+	// TODO: Remains for later consideration.
 	//userName := ""
 	//if o := ctx.Value("user_name"); o != nil {
 	//	userName, _ = o.(string)
@@ -55,6 +55,7 @@ func (s *GoCalendarServer) CreateEvent(ctx context.Context, req *gca.CreateEvent
 			EventID: eventID.String(),
 		},
 	}
+	s.Logger.Sugar().Infof("created a new event with id %s", resp.GetEventID())
 	return resp, nil
 }
 
@@ -116,8 +117,6 @@ func (s *GoCalendarServer) UpdateEvent(ctx context.Context, req *gca.Event) (*gc
 		StartTime: startTime,
 		EndTime:   endTime}
 
-	log.Printf("%v\n", newEvent)
-
 	eventID, err := s.EventService.UpdateEvent(ctx, newEvent)
 	if err != nil {
 		if berr, ok := err.(errors.GoCalendarError); ok {
@@ -137,6 +136,7 @@ func (s *GoCalendarServer) UpdateEvent(ctx context.Context, req *gca.Event) (*gc
 			EventID: eventID.String(),
 		},
 	}
+	s.Logger.Sugar().Infof("the event with id %s was successfully updated", resp.GetEventID())
 	return resp, nil
 }
 
@@ -160,5 +160,6 @@ func (s *GoCalendarServer) DeleteEvent(ctx context.Context, req *gca.RequestEven
 			Response: "event with was successfully deleted",
 		},
 	}
+	s.Logger.Sugar().Infof("the event with id %s was successfully deleted", id)
 	return resp, nil
 }

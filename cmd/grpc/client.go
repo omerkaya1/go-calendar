@@ -75,6 +75,7 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 
 	start := validators.ValidateDate(startTime)
 	finish := validators.ValidateDate(endTime)
+	validators.ValidateTime(start, finish)
 
 	req := &gca.CreateEventRequest{
 		UserName:  eventOwner,
@@ -105,6 +106,7 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 	if startTime != "" && endTime != "" {
 		start = validators.ValidateDate(startTime)
 		finish = validators.ValidateDate(endTime)
+		validators.ValidateTime(start, finish)
 	}
 
 	id := ""

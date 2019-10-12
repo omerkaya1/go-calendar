@@ -10,9 +10,9 @@ import (
 type EventStorageProcessor interface {
 	// GetOwnerEvents returns a slice of events that were created by the specified user
 	GetUserEvents(context.Context, string) ([]models.Event, error)
-	// GetEventByID returns the requested event, whose id was specified by the callee
+	// GetEventByID returns the requested event, which id was specified by the callee
 	GetEventByID(context.Context, uuid.UUID) (models.Event, error)
-	// GetEventByName returns the requested event, whose name was specified by the callee
+	// GetEventByName returns the requested event, which name was specified by the callee
 	GetEventByName(context.Context, string) (models.Event, error)
 	// UpdateEventByID updates an event stored in the DB by its internal ID
 	UpdateEventByID(context.Context, uuid.UUID, *models.Event) (uuid.UUID, error)

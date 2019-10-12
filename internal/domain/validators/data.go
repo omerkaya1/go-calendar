@@ -25,3 +25,9 @@ func ValidateID(id string) uuid.UUID {
 	}
 	return verifiedID
 }
+
+func ValidateTime(start, finish *time.Time) {
+	if start.After(*finish) {
+		log.Fatalf("%s: %s", errors.ErrValidationPrefix, errors.ErrEventTimeViolation)
+	}
+}

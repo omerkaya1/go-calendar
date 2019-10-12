@@ -29,7 +29,7 @@ fmt: setup ## Run goimports on all go files
 
 .PHONY: lint
 lint: setup ## Runs all the linters
-	golint ./...
+	golint ./internal ./cmd ./configs ./log ./
 
 .PHONY: build
 build: ## Builds the project

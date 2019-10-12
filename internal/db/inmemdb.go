@@ -5,6 +5,7 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/satori/go.uuid"
+	"log"
 	"sync"
 )
 
@@ -14,13 +15,12 @@ type InMemoryEventStorage struct {
 	db map[uuid.UUID]models.Event
 }
 
-// NewInMemoryEventStorage returns a new InMemoryEventStorage object
+// NewInMemoryEventStorage returns a new InMemoryEventStorage object.
 func NewInMemoryEventStorage() (*InMemoryEventStorage, error) {
 	return &InMemoryEventStorage{db: make(map[uuid.UUID]models.Event), m: &sync.RWMutex{}}, nil
 }
 
-// TODO: add comments!
-// GetEventByID .
+// GetEventByID returns a requested by its ID event or an error on failure
 func (imes *InMemoryEventStorage) GetEventByID(ctx context.Context, id uuid.UUID) (models.Event, error) {
 	imes.m.RLock()
 	defer imes.m.RUnlock()
@@ -31,7 +31,8 @@ func (imes *InMemoryEventStorage) GetEventByID(ctx context.Context, id uuid.UUID
 	}
 }
 
-// CreateEvent .
+// CreateEvent creates new event and stores it to the DB and returns the event's internal ID
+// On failure it returns an empty ID object and an error
 func (imes *InMemoryEventStorage) CreateEvent(ctx context.Context, event *models.Event) (uuid.UUID, error) {
 	imes.m.Lock()
 	defer imes.m.Unlock()
@@ -42,7 +43,7 @@ func (imes *InMemoryEventStorage) CreateEvent(ctx context.Context, event *models
 	return event.EventId, nil
 }
 
-// DeleteEventById .
+// DeleteEventById deletes an existing event, which ID was passed as an argument.
 func (imes *InMemoryEventStorage) DeleteEventById(ctx context.Context, id uuid.UUID) error {
 	imes.m.Lock()
 	defer imes.m.Unlock()
@@ -54,7 +55,7 @@ func (imes *InMemoryEventStorage) DeleteEventById(ctx context.Context, id uuid.U
 	return nil
 }
 
-// UpdateEventByID .
+// UpdateEventByID updates an existing event, which ID was passed as an argument
 func (imes *InMemoryEventStorage) UpdateEventByID(ctx context.Context, id uuid.UUID, event *models.Event) (uuid.UUID, error) {
 	imes.m.Lock()
 	defer imes.m.Unlock()
@@ -73,38 +74,37 @@ func (imes *InMemoryEventStorage) UpdateEventByID(ctx context.Context, id uuid.U
 
 // UpdateEventByName .
 func (imes *InMemoryEventStorage) UpdateEventByName(ctx context.Context, eventName string, event *models.Event) (uuid.UUID, error) {
+	log.Println("Implement me!")
 	return uuid.UUID{}, nil
 }
 
 // GetUserEvents .
 func (imes *InMemoryEventStorage) GetUserEvents(ctx context.Context, user string) ([]models.Event, error) {
+	log.Println("Implement me!")
 	return []models.Event{}, nil
 }
 
 // GetEventByName .
 func (imes *InMemoryEventStorage) GetEventByName(ctx context.Context, name string) (models.Event, error) {
+	log.Println("Implement me!")
 	return models.Event{}, nil
 }
 
 // DeleteAllUserEvents .
 func (imes *InMemoryEventStorage) DeleteAllUserEvents(ctx context.Context, user string) error {
+	log.Println("Implement me!")
 	return nil
 }
 
 func (imes *InMemoryEventStorage) checkEventCollision(event *models.Event) error {
+	if len(imes.db) == 0 {
+		return nil
+	}
 	for _, v := range imes.db {
 		// A new event takes place within the time interval of another event
-		if v.StartTime.Before(*event.StartTime) && v.EndTime.After(*event.EndTime) {
-			return errors.ErrEventCollisionInInterval
-		}
-		// A new event takes place within the time interval of another event
-		if v.StartTime.After(*event.StartTime) && v.EndTime.Before(*event.EndTime) {
-			return errors.ErrEventCollisionOutInterval
-		}
-		// A new event takes place within the time interval of another event
-		if v.StartTime.Equal(*event.StartTime) || v.EndTime.Equal(*event.EndTime) {
-			return errors.ErrEventCollisionMatch
+		if event.EndTime.Before(*v.StartTime) || event.StartTime.After(*v.EndTime) {
+			return nil
 		}
 	}
-	return nil
+	return errors.ErrEventCollisionInInterval
 }

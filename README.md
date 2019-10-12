@@ -16,13 +16,13 @@ Path to the configuration file.
 First iteration (Calendar service, later on just CS):
 ##### Status: in progress
 1) Define Event type; `DONE`
-2) Create handlers for creating/updating/deleting events. `In Progress`
-3) Keep events in an in-memory fashion (Use `map[string]Event`) `In Progress`
+2) Create handlers for creating/updating/deleting events. `DONE`
+3) Keep events in an in-memory fashion (Use `map[string]Event`) `DONE`
 
 Second iteration (GRPC implementation for the CS):
 ##### Status: backlog
-1) Lorem ipsum
-2) Lorem ipsum
+1) Add code generation target to the Makefile; `DONE`
+2) Add client and service functionality (GRPC `DONE`, RESTful `In Progress`)
 
 Third iteration (DB implementation for the the CS):
 ##### Status: somewhere near backlog
