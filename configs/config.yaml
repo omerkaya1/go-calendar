@@ -1,3 +1,7 @@
 host: 127.0.0.1
 port: 7000
 log_level: 1
+db:
+  dbname:
+  user:
+  sslmode:

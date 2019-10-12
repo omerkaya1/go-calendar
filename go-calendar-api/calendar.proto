@@ -1,19 +1,9 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
-
-// This section will be completed in the second iteration of the CS
-service GoCalendar {
-    // Search returns a Google search result for the query.
-    rpc CreateEvent(Event) returns (Response) {}
-    rpc GetEvent(Event) returns (Response) {}
-    rpc UpdateEvent(Event) returns (Response) {}
-    rpc DeleteEvent(Event) returns (Response) {}
-    rpc ListEvents(Event) returns (Response) {}
-}
   
 message Event {
-    int64 event_id = 1;
+    string event_id = 1;
     string user_name = 2;
     string event_name = 3;
     string note = 4;
@@ -29,9 +19,41 @@ message CreateEventRequest {
     google.protobuf.Timestamp end_time = 5;
 }
 
-message Response {
+message ResponseWithEvent {
     oneof result {
         Event event = 1;
         string error = 2;
     }
+}
+
+message ResponseWithEventID {
+    oneof result {
+        string eventID = 1;
+        string error = 2;
+    }
+}
+
+message RequestEventByID {
+    string eventID = 1;
+}
+
+message ResponseSuccess {
+    oneof result {
+        string response = 1;
+        string error = 2;
+    }
+}
+
+// This section will be completed in the second iteration of the CS
+service GoCalendarServer {
+    // CreateEvent creates a new event and stores it in the DB. It returns an event id on success or error on failure.
+    rpc CreateEvent(CreateEventRequest) returns (ResponseWithEventID) {}
+    // GetEventByID returns an event if it exists, otherwise it returns an error.
+    rpc GetEvent(RequestEventByID) returns (ResponseWithEvent) {}
+    // UpdateEventByID updates an existing event and returns an event id on success or an error on failure.
+    rpc UpdateEvent(Event) returns (ResponseWithEventID) {}
+    // DeleteEventByID deletes an event from the DB. It returns an event id on success or an error on failure.
+    rpc DeleteEvent(RequestEventByID) returns (ResponseSuccess) {}
+    // TODO: Implement later!
+    // rpc ListEvents(Event) returns (ResponseWithEvent) {}
 }

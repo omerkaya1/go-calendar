@@ -5,8 +5,6 @@ import (
 	"log"
 )
 
-//go:generate echo test
-
 func main() {
 	if err := cmd.RootCmd.Execute(); err != nil {
 		log.Fatal(err)
