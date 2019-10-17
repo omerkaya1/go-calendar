@@ -73,16 +73,32 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getGRPCClient()
 
-	start := validators.ValidateDate(startTime)
-	finish := validators.ValidateDate(endTime)
+	start, err := validators.ValidateDate(startTime)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	finish, err := validators.ValidateDate(endTime)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
 	validators.ValidateTime(start, finish)
+
+	startTime, err := parsers.ParseTimeToProto(start)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	endTime, err := parsers.ParseTimeToProto(finish)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
 
 	req := &gca.CreateEventRequest{
 		UserName:  eventOwner,
 		EventName: eventName,
 		Text:      eventNote,
-		StartTime: parsers.ParseTime(start),
-		EndTime:   parsers.ParseTime(finish),
+		StartTime: startTime,
+		EndTime:   endTime,
 	}
 	resp, err := client.CreateEvent(context.Background(), req)
 	if err != nil {
@@ -90,9 +106,8 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 	}
 	if resp.GetError() != "" {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
-	} else {
-		log.Println(resp.GetEventID())
 	}
+	log.Println(resp.GetEventID())
 }
 
 func updateCmdFunc(cmd *cobra.Command, args []string) {
@@ -102,25 +117,41 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getGRPCClient()
 
+	req := &gca.Event{
+		EventName: eventName,
+		Note:      eventNote,
+	}
+
 	start, finish := &time.Time{}, &time.Time{}
 	if startTime != "" && endTime != "" {
-		start = validators.ValidateDate(startTime)
-		finish = validators.ValidateDate(endTime)
+		start, err := validators.ValidateDate(startTime)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		finish, err := validators.ValidateDate(endTime)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
 		validators.ValidateTime(start, finish)
 	}
 
-	id := ""
-	if eventID != "" {
-		id = validators.ValidateID(eventID).String()
+	pStart, err := parsers.ParseTimeToProto(start)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
 
-	req := &gca.Event{
-		EventId:   id,
-		EventName: eventName,
-		Note:      eventNote,
-		StartTime: parsers.ParseTime(start),
-		EndTime:   parsers.ParseTime(finish),
+	pFinish, err := parsers.ParseTimeToProto(finish)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
+
+	req.StartTime, req.EndTime = pStart, pFinish
+
+	id, err := validators.ValidateID(eventID)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	req.EventId = id.String()
 
 	resp, err := client.UpdateEvent(context.Background(), req)
 	if err != nil {
@@ -128,9 +159,8 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 	}
 	if resp.GetError() != "" {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
-	} else {
-		log.Println(resp.GetEventID())
 	}
+	log.Println(resp.GetEventID())
 }
 
 func getCmdFunc(cmd *cobra.Command, args []string) {
@@ -140,8 +170,13 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getGRPCClient()
 
+	id, err := validators.ValidateID(eventID)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
 	req := &gca.RequestEventByID{
-		EventID: eventID,
+		EventID: id.String(),
 	}
 
 	resp, err := client.GetEvent(context.Background(), req)
@@ -151,9 +186,8 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 
 	if resp.GetError() != "" {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
-	} else {
-		log.Printf("%v\n", resp.GetEvent())
 	}
+	log.Printf("%v\n", resp.GetEvent())
 }
 
 func deleteCmdFunc(cmd *cobra.Command, args []string) {
@@ -163,8 +197,13 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getGRPCClient()
 
+	id, err := validators.ValidateID(eventID)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
 	req := &gca.RequestEventByID{
-		EventID: eventID,
+		EventID: id.String(),
 	}
 
 	resp, err := client.DeleteEvent(context.Background(), req)
@@ -173,9 +212,8 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 	}
 	if resp.GetError() != "" {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
-	} else {
-		log.Printf("%v\n", resp.GetResponse())
 	}
+	log.Printf("%v\n", resp.GetResponse())
 }
 
 func getGRPCClient() gca.GoCalendarServerClient {

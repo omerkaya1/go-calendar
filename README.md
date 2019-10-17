@@ -22,7 +22,7 @@ First iteration (Calendar service, later on just CS):
 Second iteration (GRPC implementation for the CS):
 ##### Status: backlog
 1) Add code generation target to the Makefile; `DONE`
-2) Add client and service functionality (GRPC `DONE`, RESTful `In Progress`)
+2) Add client and service functionality (GRPC `DONE`, RESTful `DONE`)
 
 Third iteration (DB implementation for the the CS):
 ##### Status: somewhere near backlog

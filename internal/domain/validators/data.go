@@ -9,21 +9,21 @@ import (
 
 // ValidateDate checks the passed date string according to UNIX time format and returns address of the time object on
 // success or logs the error on failure
-func ValidateDate(timeStr string) *time.Time {
+func ValidateDate(timeStr string) (*time.Time, error) {
 	t, err := time.Parse(time.UnixDate, timeStr)
 	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrValidationPrefix, err)
+		return nil, err
 	}
-	return &t
+	return &t, nil
 }
 
 // ValidateID checks the passed id string and returns the uuid object on success or logs the error on failure
-func ValidateID(id string) uuid.UUID {
+func ValidateID(id string) (uuid.UUID, error) {
 	verifiedID, err := uuid.FromString(id)
 	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrValidationPrefix, err)
+		return uuid.UUID{}, err
 	}
-	return verifiedID
+	return verifiedID, nil
 }
 
 func ValidateTime(start, finish *time.Time) {
