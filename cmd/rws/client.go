@@ -1,9 +1,17 @@
 package rws
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/domain/models"
+	"github.com/omerkaya1/go-calendar/internal/domain/validators"
+	"github.com/omerkaya1/go-calendar/internal/rws"
 	"github.com/spf13/cobra"
 	"log"
+	"net/http"
+	"time"
 )
 
 var host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string
@@ -20,7 +28,7 @@ var (
 		Short: "Create calendar event",
 		Run:   createCmdFunc,
 		Example: `  go-calendar rws-client create -t "Saturday party" -n "Buy soda and apples!" -o "John Doe" 
-		-s "Tue Oct 1 18:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
+		-b "Tue Oct 1 18:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
 	}
 
 	GetActionCmd = &cobra.Command{
@@ -35,7 +43,7 @@ var (
 		Short: "Update calendar event",
 		Run:   updateCmdFunc,
 		Example: `  go-calendar rws-client update -i sdkjf-8783-sdfs-341 -t "Saturday party(postponed)" -o "John Doe" 
--s "Tue Oct 1 19:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
+-b "Tue Oct 1 19:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
 	}
 
 	DeleteActionCmd = &cobra.Command{
@@ -51,7 +59,7 @@ var (
 func init() {
 	ClientCmd.AddCommand(CreateActionCmd, GetActionCmd, UpdateActionCmd, DeleteActionCmd)
 	ClientCmd.PersistentFlags().StringVarP(&host, "host", "s", "127.0.0.1", "host address to connect to")
-	ClientCmd.PersistentFlags().StringVarP(&port, "port", "p", "9000", "port of the host")
+	ClientCmd.PersistentFlags().StringVarP(&port, "port", "p", "7070", "port of the host")
 	ClientCmd.PersistentFlags().StringVarP(&eventID, "id", "i", "", "internal event id")
 	ClientCmd.PersistentFlags().StringVarP(&eventOwner, "owner", "o", "", "owner of the event")
 	ClientCmd.PersistentFlags().StringVarP(&eventName, "event-title", "t", "", "event name")
@@ -60,28 +68,167 @@ func init() {
 	ClientCmd.PersistentFlags().StringVarP(&endTime, "event-end", "e", "", "ending date and hour of the event")
 }
 
-// MEMO: consider using gorilla Client
 func createCmdFunc(cmd *cobra.Command, args []string) {
 	if eventOwner == "" || startTime == "" || endTime == "" {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags.Error())
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-	//start := validators.ValidateDate(startTime)
-	//finish := validators.ValidateDate(endTime)
-	//
-	//eventID, err :=
+
+	client := getRWSClient()
+
+	event := &models.EventJSON{
+		EventId:   eventID,
+		UserName:  eventOwner,
+		EventName: eventName,
+		Note:      eventNote,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+
+	body, err := json.Marshal(event)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf("http://%s:%s%s%s%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL),
+		bytes.NewReader(body))
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	defer resp.Body.Close()
+	buf := make([]byte, resp.ContentLength)
+	if n, err := resp.Body.Read(buf); err.Error() != "EOF" || int64(n) != resp.ContentLength {
+		log.Fatalf("%s: %s. bytes read: %d", errors.ErrClientCmdPrefix, err, n)
+	}
+	log.Println(string(buf))
 }
 
 func updateCmdFunc(cmd *cobra.Command, args []string) {
-	log.Println("Implement me!")
-	log.Println(eventName, eventID, "|", eventNote, "|", eventOwner, startTime, endTime)
+	if eventID == "" && eventName == "" {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
+	}
+
+	client := getRWSClient()
+
+	event := &models.Event{UserName: eventOwner, EventName: eventName, Note: eventNote}
+	if startTime != "" && endTime != "" {
+		start, err := validators.ValidateDate(startTime)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		finish, err := validators.ValidateDate(endTime)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		validators.ValidateTime(start, finish)
+		event.StartTime, event.EndTime = start, finish
+	}
+
+	id, err := validators.ValidateID(eventID)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	event.EventId = id
+
+	body, err := json.Marshal(event)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPut,
+		fmt.Sprintf("http://%s:%s%s%s%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL),
+		bytes.NewReader(body))
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	defer resp.Body.Close()
+	buf := make([]byte, resp.ContentLength)
+	if n, err := resp.Body.Read(buf); err != nil || int64(n) != resp.ContentLength {
+		log.Fatalf("%s: %s. bytes read: %d", errors.ErrClientCmdPrefix, err, n)
+	}
+	log.Println(string(buf))
 }
 
 func getCmdFunc(cmd *cobra.Command, args []string) {
-	log.Println("Implement me!")
-	log.Println(eventName, eventID, "|", eventNote, "|", eventOwner, startTime, endTime)
+	if eventID == "" && eventName == "" {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
+	}
+
+	client := getRWSClient()
+
+	id, err := validators.ValidateID(eventID)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	req, err := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, id.String()),
+		nil)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	defer resp.Body.Close()
+	buf := make([]byte, resp.ContentLength)
+	if n, err := resp.Body.Read(buf); err.Error() != "EOF" || int64(n) != resp.ContentLength {
+		log.Fatalf("%s: %s. bytes read: %d", errors.ErrClientCmdPrefix, err, n)
+	}
+	log.Println(string(buf))
 }
 
 func deleteCmdFunc(cmd *cobra.Command, args []string) {
-	log.Println("Implement me!")
-	log.Println(eventName, eventID, "|", eventNote, "|", eventOwner, startTime, endTime)
+	if eventID == "" && eventName == "" {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
+	}
+
+	client := getRWSClient()
+
+	id, err := validators.ValidateID(eventID)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	req, err := http.NewRequest(
+		http.MethodDelete,
+		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, id.String()),
+		nil)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+	}
+	defer resp.Body.Close()
+	buf := make([]byte, resp.ContentLength)
+	if n, err := resp.Body.Read(buf); err.Error() != "EOF" || int64(n) != resp.ContentLength {
+		log.Fatalf("%s: %s. bytes read: %d", errors.ErrClientCmdPrefix, err, n)
+	}
+	log.Println(string(buf))
+}
+
+func getRWSClient() *http.Client {
+	return &http.Client{
+		Timeout: time.Second * 60,
+	}
 }

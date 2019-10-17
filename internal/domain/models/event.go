@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Event
+// Event .
 type Event struct {
 	EventId   uuid.UUID  `json:"event_id"`
 	UserName  string     `json:"user_name"`
@@ -13,6 +13,16 @@ type Event struct {
 	Note      string     `json:"note"`
 	StartTime *time.Time `json:"start_time"`
 	EndTime   *time.Time `json:"end_time"`
+}
+
+// EventJSON .
+type EventJSON struct {
+	EventId   string `json:"event_id"`
+	UserName  string `json:"user_name"`
+	EventName string `json:"event_name"`
+	Note      string `json:"note"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
 }
 
 // NewEvent .
@@ -36,6 +46,9 @@ func ComposeEvent(old Event, new *Event) *Event {
 		Note:      old.Note,
 		StartTime: old.StartTime,
 		EndTime:   old.EndTime,
+	}
+	if new.Note != "" {
+		retEvent.EventName = new.Note
 	}
 	if new.EventName != "" {
 		retEvent.EventName = new.EventName

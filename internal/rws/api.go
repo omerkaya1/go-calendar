@@ -1,31 +1,158 @@
 package rws
 
 import (
+	"context"
+	"encoding/json"
+	"github.com/gorilla/mux"
+	"github.com/omerkaya1/go-calendar/internal/domain/models"
+	"github.com/omerkaya1/go-calendar/internal/domain/validators"
 	"net/http"
+	"time"
 )
 
 const (
-	apiPrefix  = "/api"
-	apiVersion = "/v1"
-	eventURL   = "/event"
+	RWSApiPrefix  = "/api"
+	RWSapiVersion = "/v1"
+	RWSeventURL   = "/event"
 )
 
+// CreateEvent .
 func (s *Server) CreateEvent(rw http.ResponseWriter, r *http.Request) {
-	// TODO: Implement me!
-	s.Logger.Info("createEvent triggered")
+	defer r.Body.Close()
+	event := &models.EventJSON{}
+
+	if err := json.NewDecoder(r.Body).Decode(event); err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	startTime, err := validators.ValidateDate(event.StartTime)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	endTime, err := validators.ValidateDate(event.EndTime)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	req := models.NewEvent(event.UserName, event.EventName, event.Note, startTime, endTime)
+
+	eventID, err := s.EventService.CreateEvent(context.Background(), req)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	s.Logger.Sugar().Infof("created a new event with id %s", eventID)
+	rw.Write([]byte(eventID.String()))
+	return
 }
 
+// UpdateEvent .
 func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
-	// TODO: Implement me!
-	s.Logger.Info("updateEvent triggered")
+	defer r.Body.Close()
+	event := &models.EventJSON{}
+
+	if err := json.NewDecoder(r.Body).Decode(event); err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	id, err := validators.ValidateID(event.EventId)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	startTime, endTime := &time.Time{}, &time.Time{}
+	if event.StartTime != "" && event.EndTime != "" {
+		startTime, err = validators.ValidateDate(event.StartTime)
+		if err != nil {
+			s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+			return
+		}
+		endTime, err = validators.ValidateDate(event.EndTime)
+		if err != nil {
+			s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	req := &models.Event{
+		EventId:   id,
+		UserName:  event.UserName,
+		EventName: event.EventName,
+		Note:      event.Note,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+
+	eventID, err := s.EventService.UpdateEvent(context.Background(), req)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	s.Logger.Sugar().Infof("updated the event with id %s", eventID)
+	rw.Write([]byte(eventID.String()))
+	return
 }
 
+// DeleteEvent .
 func (s *Server) DeleteEvent(rw http.ResponseWriter, r *http.Request) {
-	// TODO: Implement me!
-	s.Logger.Info("deleteEvent triggered")
+	defer r.Body.Close()
+	params := mux.Vars(r)
+
+	id, err := validators.ValidateID(params["id"])
+	if err != nil {
+		s.formResponse(rw, true, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := s.EventService.DeleteEvent(context.Background(), id); err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	s.Logger.Sugar().Infof("the event with id %s was successfully deleted", id.String())
+	rw.Write([]byte("event was successfully deleted"))
+	return
 }
 
+// GetEvent .
 func (s *Server) GetEvent(rw http.ResponseWriter, r *http.Request) {
-	// TODO: Implement me!
-	s.Logger.Info("getEvent triggered")
+	defer r.Body.Close()
+	params := mux.Vars(r)
+
+	id, err := validators.ValidateID(params["id"])
+	if err != nil {
+		s.formResponse(rw, true, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	event, err := s.EventService.GetEvent(context.Background(), id)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	resp, err := json.Marshal(event)
+	if err != nil {
+		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	rw.Write(resp)
+	return
+}
+
+func (s *Server) formResponse(rw http.ResponseWriter, error bool, code int, message string) {
+	if error {
+		s.Logger.Sugar().Error(message)
+		rw.WriteHeader(code)
+	}
+	rw.Write([]byte(message))
 }
