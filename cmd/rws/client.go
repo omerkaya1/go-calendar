@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
-	"github.com/omerkaya1/go-calendar/internal/domain/validators"
 	"github.com/omerkaya1/go-calendar/internal/rws"
 	"github.com/spf13/cobra"
 	"log"
@@ -97,8 +96,6 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
 
-	req.Header.Add("Content-Type", "application/json")
-
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
@@ -118,25 +115,10 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getRWSClient()
 
-	event := &models.Event{UserName: eventOwner, EventName: eventName, Note: eventNote}
+	event := &models.EventJSON{EventId: eventID, UserName: eventOwner, EventName: eventName, Note: eventNote}
 	if startTime != "" && endTime != "" {
-		start, err := validators.ValidateDate(startTime)
-		if err != nil {
-			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-		}
-		finish, err := validators.ValidateDate(endTime)
-		if err != nil {
-			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-		}
-		validators.ValidateTime(start, finish)
-		event.StartTime, event.EndTime = start, finish
+		event.StartTime, event.EndTime = startTime, endTime
 	}
-
-	id, err := validators.ValidateID(eventID)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-	event.EventId = id
 
 	body, err := json.Marshal(event)
 	if err != nil {
@@ -157,7 +139,7 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 	}
 	defer resp.Body.Close()
 	buf := make([]byte, resp.ContentLength)
-	if n, err := resp.Body.Read(buf); err != nil || int64(n) != resp.ContentLength {
+	if n, err := resp.Body.Read(buf); err.Error() != "EOF" || int64(n) != resp.ContentLength {
 		log.Fatalf("%s: %s. bytes read: %d", errors.ErrClientCmdPrefix, err, n)
 	}
 	log.Println(string(buf))
@@ -170,14 +152,9 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getRWSClient()
 
-	id, err := validators.ValidateID(eventID)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
 	req, err := http.NewRequest(
 		http.MethodGet,
-		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, id.String()),
+		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, eventID),
 		nil)
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
@@ -202,14 +179,9 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getRWSClient()
 
-	id, err := validators.ValidateID(eventID)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
 	req, err := http.NewRequest(
 		http.MethodDelete,
-		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, id.String()),
+		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, eventID),
 		nil)
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)

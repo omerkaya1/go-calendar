@@ -16,7 +16,7 @@ const (
 	RWSeventURL   = "/event"
 )
 
-// CreateEvent .
+// CreateEvent handles RWS requests to create events
 func (s *Server) CreateEvent(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	event := &models.EventJSON{}
@@ -51,10 +51,11 @@ func (s *Server) CreateEvent(rw http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// UpdateEvent .
+// UpdateEvent handles RWS requests to update existing events
 func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	event := &models.EventJSON{}
+	var err error
 
 	if err := json.NewDecoder(r.Body).Decode(event); err != nil {
 		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
@@ -67,14 +68,14 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	startTime, endTime := &time.Time{}, &time.Time{}
+	start, finish := &time.Time{}, &time.Time{}
 	if event.StartTime != "" && event.EndTime != "" {
-		startTime, err = validators.ValidateDate(event.StartTime)
+		start, err = validators.ValidateDate(event.StartTime)
 		if err != nil {
 			s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
 			return
 		}
-		endTime, err = validators.ValidateDate(event.EndTime)
+		finish, err = validators.ValidateDate(event.EndTime)
 		if err != nil {
 			s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
 			return
@@ -86,8 +87,8 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 		UserName:  event.UserName,
 		EventName: event.EventName,
 		Note:      event.Note,
-		StartTime: startTime,
-		EndTime:   endTime,
+		StartTime: start,
+		EndTime:   finish,
 	}
 
 	eventID, err := s.EventService.UpdateEvent(context.Background(), req)
@@ -101,7 +102,7 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// DeleteEvent .
+// DeleteEvent handles RWS requests to delete existing events
 func (s *Server) DeleteEvent(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	params := mux.Vars(r)
@@ -122,7 +123,7 @@ func (s *Server) DeleteEvent(rw http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// GetEvent .
+// GetEvent handles RWS requests to retrieve events
 func (s *Server) GetEvent(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	params := mux.Vars(r)

@@ -123,12 +123,13 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 	}
 
 	start, finish := &time.Time{}, &time.Time{}
+	var err error
 	if startTime != "" && endTime != "" {
-		start, err := validators.ValidateDate(startTime)
+		start, err = validators.ValidateDate(startTime)
 		if err != nil {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 		}
-		finish, err := validators.ValidateDate(endTime)
+		finish, err = validators.ValidateDate(endTime)
 		if err != nil {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 		}

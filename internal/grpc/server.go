@@ -33,6 +33,5 @@ func (s *GoCalendarServer) Run() {
 	gca.RegisterGoCalendarServerServer(server, s)
 
 	s.Logger.Sugar().Infof("Server initialisation is completed. Server address: %s:%s", s.Cfg.Host, s.Cfg.Port)
-	// TODO: consider a graceful shutdown here.
 	s.Logger.Sugar().Errorf("%s", server.Serve(l))
 }
