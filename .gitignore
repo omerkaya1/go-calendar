@@ -2,4 +2,5 @@
 TODO
 go.sum
 vendor
-
+bin/go-calendar
+bin

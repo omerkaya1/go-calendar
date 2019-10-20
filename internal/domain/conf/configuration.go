@@ -10,12 +10,12 @@ import (
 type Config struct {
 	Host     string `json:"host" yaml:"host" toml:"host"`
 	Port     string `json:"port" yaml:"port" toml:"port"`
-	LogLevel int    `json:"log_level" yaml:"log_level" toml:"log_level"`
+	LogLevel int    `json:"loglevel" yaml:"loglevel" toml:"loglevel"`
 	DB       DBConf `json:"db" yaml:"db" toml:"db"`
 }
 
 type DBConf struct {
-	Name    string `json:"dbname" yaml:"dbname" toml:"dbname"`
+	Name    string `json:"name" yaml:"name" toml:"name"`
 	User    string `json:"user" yaml:"user" toml:"user"`
 	SSLMode string `json:"sslmode" yaml:"sslmode" toml:"sslmode"`
 }
@@ -33,12 +33,12 @@ func InitConfig(cfgPath string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg := Config{}
-	if err := viper.Unmarshal(&cfg); err != nil {
+	cfg := &Config{}
+	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, err
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 func CfgFromFile(cfgPath string) (*Config, error) {
