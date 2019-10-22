@@ -16,9 +16,12 @@ type Config struct {
 }
 
 type DBConf struct {
-	Name    string `json:"name" yaml:"name" toml:"name"`
-	User    string `json:"user" yaml:"user" toml:"user"`
-	SSLMode string `json:"sslmode" yaml:"sslmode" toml:"sslmode"`
+	Host     string `json:"host" yaml:"host" toml:"host"`
+	Port     string `json:"port" yaml:"port" toml:"port"`
+	Password string `json:"password" yaml:"password" toml:"password"`
+	Name     string `json:"name" yaml:"name" toml:"name"`
+	User     string `json:"user" yaml:"user" toml:"user"`
+	SSLMode  string `json:"sslmode" yaml:"sslmode" toml:"sslmode"`
 }
 
 type QueueConf struct {
@@ -58,15 +61,18 @@ func CfgFromFile(cfgPath string) (*Config, error) {
 	return cfg, nil
 }
 
-func CfgFromCmdParams(logLevel int, host, port, dbName, dbUser, sslMode string) *Config {
+func CfgFromCmdParams(logLevel int, host, port, dbName, dbUser, dbHost, dbPort, dbPassword, sslMode string) *Config {
 	return &Config{
 		Host:     host,
 		Port:     port,
 		LogLevel: logLevel,
 		DB: DBConf{
-			Name:    dbName,
-			User:    dbUser,
-			SSLMode: sslMode,
+			Host:     dbHost,
+			Port:     dbPort,
+			Password: dbPassword,
+			Name:     dbName,
+			User:     dbUser,
+			SSLMode:  sslMode,
 		},
 		// For now, assume the
 		Queue: QueueConf{

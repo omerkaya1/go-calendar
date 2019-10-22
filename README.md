@@ -14,20 +14,20 @@ Path to the configuration file.
 
 ## TODO
 ### First iteration (Calendar service, later on just CS):
-##### Status: in progress
+##### Status: DONE
 1) Define Event type; `DONE`
 2) Create handlers for creating/updating/deleting events. `DONE`
 3) Keep events in an in-memory fashion (Use `map[string]Event`) `DONE`
 
 ### Second iteration (GRPC implementation for the CS):
-##### Status: backlog
+##### Status: DONE
 1) Add code generation target to the Makefile; `DONE`
 2) Add client and service functionality (GRPC `DONE`, RESTful `DONE`)
 
 ### Third iteration (DB implementation for the the CS):
-##### Status: somewhere near backlog
-1) Integrate DB usage; `In Progress`
-2) Make sure that the DB logic is independent from the higher level abstractions. `In Progress`
+##### Status: DONE
+1) Integrate DB usage; `DONE`
+2) Make sure that the DB logic is independent from the higher level abstractions. `DONE`
 
 ### Fourth iteration (Message queue implementation for the the CS):
 ##### Status: deep backlog

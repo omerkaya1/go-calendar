@@ -1,0 +1,39 @@
+version: "3.7"
+services:
+  postgres:
+    image: postgres:10.0-alpine
+    container_name: pgs_db
+    environment:
+      - POSTGRES_USER=calendar_user
+      - POSTGRES_PASSWORD=some_pwd
+      - POSTGRES_DB=calendar_db
+    volumes:
+      - ../db/data:/var/lib/postgresql/data
+      - ../db/db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "54321:5432"
+    networks:
+      go-calendar-net:
+        aliases:
+          - postgres
+
+  go-calendar:
+    container_name: gcs
+    build:
+      context: ../.
+      dockerfile: ./deploy/go-calendar/Dockerfile
+    volumes:
+      - ../configs:/opt/go-calendar/configs
+    depends_on:
+      - postgres
+    ports:
+      - "7070:7070"
+    networks:
+      go-calendar-net:
+        aliases:
+          - go-calendar
+    restart: on-failure
+
+networks:
+  go-calendar-net:
+    driver: bridge

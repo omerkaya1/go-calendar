@@ -1,10 +1,13 @@
 {
   "host": "127.0.0.1",
   "port": "7070",
-  "loglevel": 1,
+  "loglevel": 2,
   "db": {
     "name": "calendar_db",
     "user": "calendar_user",
+    "host": "127.0.0.1",
+    "password": "some_pwd",
+    "port": "54321",
     "sslmode": "disable"
   },
   "queue": {

@@ -13,13 +13,11 @@ import (
 )
 
 var (
-	cfgPath  string
-	connHost string
-	connPort string
-	dbName   string
-	dbUser   string
-	sslMode  string
-	logLevel int
+	// Server related
+	cfgPath, connHost, connPort string
+	logLevel                    int
+	// DB related
+	dbUser, dbName, dbPassword, sslMode, dbHost, dbPort string
 )
 
 var ServerCmd = &cobra.Command{
@@ -38,6 +36,9 @@ func init() {
 	ServerCmd.Flags().IntVarP(&logLevel, "log", "l", 1, "changes log level")
 	ServerCmd.Flags().StringVarP(&connHost, "host", "s", "127.0.0.1", "host address")
 	ServerCmd.Flags().StringVarP(&connPort, "port", "p", "7070", "host port")
+	ServerCmd.Flags().StringVarP(&dbHost, "dbhost", "", "127.0.0.1", "db host")
+	ServerCmd.Flags().StringVarP(&dbPort, "dbport", "", "5432", "db port")
+	ServerCmd.Flags().StringVarP(&dbPassword, "dbpassword", "", "", "db password")
 	ServerCmd.Flags().StringVarP(&dbName, "dbname", "n", "test", "db name")
 	ServerCmd.Flags().StringVarP(&dbUser, "dbuser", "u", "", "db user")
 	ServerCmd.Flags().StringVarP(&sslMode, "sslmode", "m", "disable", "ssl mode")
@@ -50,7 +51,7 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	if cfgPath != "" {
 		cfg, err = conf.CfgFromFile(cfgPath)
 	} else {
-		cfg = conf.CfgFromCmdParams(logLevel, connHost, connPort, dbName, dbUser, sslMode)
+		cfg = conf.CfgFromCmdParams(logLevel, connHost, connPort, dbName, dbUser, dbHost, dbPort, dbPassword, sslMode)
 	}
 	if err != nil {
 		log.Fatalf("%s: InitConfig failed: %s", errors.ErrServiceCmdPrefix, err)

@@ -1,4 +1,5 @@
 BUILD= $(CURDIR)/bin
+VERSION= $(shell git rev-list HEAD --count)
 $(shell mkdir -p $(BUILD))
 export GO111MODULE=on
 export GOPATH=$(go env GOPATH)
@@ -40,14 +41,25 @@ build: ## Builds the project
 gen: ## Triggers code generation of
 	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc go-calendar-api/*.proto
 
-.PHONY: dockerbuild
-dockerbuild: ## Builds a docker container with a project
-# Replace registry.blabla.com/omerkaya1/go-calendar with a real address where the image will be stored
-	docker build -t registry.blabla.com/omerkaya1/go-calendar -f .
+.PHONY: dockerbuild-gc
+dockerbuild-gc: ## Builds a docker container with a project
+# Replace 0.${VERSION} with the Git tag
+	docker build -t omer513/go-calendar:0.${VERSION} -f ./deploy/go-calendar/Dockerfile .
 
-.PHONY: dockerpush
-dockerpush: dockerbuild ## Publishes the docker image to the registry
-	go build -o $(BUILD)/go-calendar $(CURDIR)/cmd/go-calendar
+.PHONY: dockerpush-gc
+dockerpush-gc: dockerbuild-gc ## Publishes the docker image to the registry
+	docker push
+
+.PHONY: dockerpush-all
+dockerpush-all: dockerpush-gc ## Publishes the docker image to the registry
+
+.PHONY: docker-compose-up
+docker-compose-up: ## Publishes the docker image to the registry
+	docker-compose -f ./deploy/docker-compose.yaml up -d
+
+.PHONY: docker-compose-down
+docker-compose-down: ## Publishes the docker image to the registry
+	docker-compose -f ./deploy/docker-compose.yaml down -v
 
 .PHONY: clean
 clean: ## Remove temporary files

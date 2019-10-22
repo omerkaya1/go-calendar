@@ -4,3 +4,4 @@ go.sum
 vendor
 bin/go-calendar
 bin
+db/data
