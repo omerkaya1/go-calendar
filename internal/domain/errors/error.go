@@ -18,6 +18,8 @@ var (
 	ErrMalformedTimeObject      = GoCalendarError("invalid time string")
 	// DB related errors
 	ErrNoOpDBAction = GoCalendarError("no rows were affected by the action")
+	// Other errors
+	ErrBadQueueConfiguration = GoCalendarError("malformed or uninitialised message queue configuration")
 )
 
 const (
@@ -25,4 +27,5 @@ const (
 	ErrClientCmdPrefix  = "client failure"
 	ErrAPIPrefix        = "api failure"
 	ErrValidationPrefix = "validation failure"
+	ErrMQPrefix         = "message queue failure"
 )

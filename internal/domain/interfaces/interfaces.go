@@ -24,4 +24,6 @@ type EventStorageProcessor interface {
 	DeleteEventById(context.Context, uuid.UUID) error
 	// DeleteAllUserEvents deletes all the events stored in the DB under a specified user
 	DeleteAllUserEvents(context.Context, string) error
+	// GetEventsByDate returns a slice of events that were created by the specified user
+	GetUpcomingEvents(context.Context) ([]models.Event, error)
 }

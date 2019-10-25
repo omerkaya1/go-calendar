@@ -5,3 +5,9 @@ db:
   name: calendar_db
   user: calendar_user
   sslmode: disable
+queue:
+  host: localhost
+  port: 5672
+  user: guest
+  password: guest
+  interval: 24h

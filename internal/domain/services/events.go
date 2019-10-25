@@ -33,3 +33,7 @@ func (es *EventService) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 func (es *EventService) GetEventsList(ctx context.Context) {
 
 }
+
+func (es *EventService) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
+	return es.Processor.GetUpcomingEvents(ctx)
+}

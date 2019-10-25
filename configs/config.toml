@@ -6,3 +6,10 @@ loglevel = 1.0
 name = "calendar_db"
 user = "calendar_user"
 sslmode = "disable"
+
+[queue]
+  host = "localhost"
+  port = "5672"
+  user = "guest"
+  password = "guest"
+  interval = "24h"

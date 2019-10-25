@@ -1,12 +1,12 @@
 package grpc
 
 import (
-	"fmt"
 	"github.com/omerkaya1/go-calendar/internal/db"
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/services"
 	"github.com/omerkaya1/go-calendar/internal/grpc"
+	mq "github.com/omerkaya1/go-calendar/internal/message-queue"
 	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
 	"log"
@@ -66,9 +66,15 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%s: dbFromConfig failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
-	fmt.Println(cmd.Use)
+
+	// Init MQ
+	q, err := mq.NewMessageQueue(cfg.Queue)
+	if err != nil {
+		log.Fatalf("%s: NewMessageQueue failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+
 	// Init GRPC server
-	srv := grpc.NewServer(cfg, logger, esp)
+	srv := grpc.NewServer(cfg, logger, esp, q)
 	srv.Run()
 }
 

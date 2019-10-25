@@ -72,6 +72,12 @@ func (imes *InMemoryEventStorage) UpdateEventByID(ctx context.Context, id uuid.U
 	}
 }
 
+// GetUpcomingEvents .
+func (imes *InMemoryEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
+	log.Println("Implement me!")
+	return nil, nil
+}
+
 // UpdateEventByName .
 func (imes *InMemoryEventStorage) UpdateEventByName(ctx context.Context, eventName string, event *models.Event) (uuid.UUID, error) {
 	log.Println("Implement me!")
