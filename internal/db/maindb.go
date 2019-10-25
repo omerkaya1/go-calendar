@@ -70,7 +70,7 @@ func (edb *MainEventStorage) CreateEvent(ctx context.Context, event *models.Even
 		values (:id, :user_name, :title, :note, :start_time, :end_time)
 	`
 	_, err := edb.db.NamedExecContext(ctx, query, models.Event{
-		EventId:   event.EventId,
+		EventID:   event.EventID,
 		UserName:  event.UserName,
 		EventName: event.EventName,
 		Note:      event.Note,
@@ -80,7 +80,7 @@ func (edb *MainEventStorage) CreateEvent(ctx context.Context, event *models.Even
 	if err != nil {
 		return uuid.UUID{}, err
 	}
-	return event.EventId, nil
+	return event.EventID, nil
 }
 
 // DeleteEventById deletes an event with the specified ID
@@ -100,10 +100,34 @@ func (edb *MainEventStorage) DeleteEventById(ctx context.Context, id uuid.UUID) 
 	return nil
 }
 
+// GetUpcomingEvents method queries the DB and returns events for the current day and the day after
+func (edb *MainEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+		eventList := make([]models.Event, 0)
+		e := models.Event{}
+		query := "select * from events where start_time::date=current_date or start_time::date=current_date+interval '1 day'"
+		rows, err := edb.db.QueryxContext(ctx, query)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			if err := rows.StructScan(&e); err != nil {
+				return eventList, err
+			}
+			eventList = append(eventList, e)
+		}
+		return eventList, nil
+	}
+}
+
 // MEMO: for later implementation.
 // GetUserEvents .
 func (edb *MainEventStorage) GetUserEvents(ctx context.Context, user string) ([]models.Event, error) {
-	return []models.Event{}, nil
+	return nil, nil
 }
 
 func (edb *MainEventStorage) GetEventByName(ctx context.Context, name string) (models.Event, error) {

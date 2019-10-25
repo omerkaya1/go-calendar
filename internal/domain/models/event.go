@@ -7,7 +7,7 @@ import (
 
 // Event struct is the main internal representation of an event
 type Event struct {
-	EventId   uuid.UUID  `json:"event_id" db:"id"`
+	EventID   uuid.UUID  `json:"event_id" db:"id"`
 	UserName  string     `json:"user_name" db:"user_name"`
 	EventName string     `json:"event_name" db:"title"`
 	Note      string     `json:"note" db:"note"`
@@ -17,7 +17,7 @@ type Event struct {
 
 // EventJSON struct is used for RWS Client-Server communications
 type EventJSON struct {
-	EventId   string `json:"event_id"`
+	EventID   string `json:"event_id"`
 	UserName  string `json:"user_name"`
 	EventName string `json:"event_name"`
 	Note      string `json:"note"`
@@ -28,7 +28,7 @@ type EventJSON struct {
 // NewEvent returns a new Event object to the callee
 func NewEvent(user, event, note string, start, end *time.Time) *Event {
 	return &Event{
-		EventId:   uuid.NewV4(),
+		EventID:   uuid.NewV4(),
 		UserName:  user,
 		EventName: event,
 		Note:      note,
@@ -40,7 +40,7 @@ func NewEvent(user, event, note string, start, end *time.Time) *Event {
 // ComposeEvent method updates fields of an old event if necessary and returns it to the callee
 func ComposeEvent(old Event, new *Event) *Event {
 	retEvent := &Event{
-		EventId:   old.EventId,
+		EventID:   old.EventID,
 		UserName:  old.UserName,
 		EventName: old.EventName,
 		Note:      old.Note,

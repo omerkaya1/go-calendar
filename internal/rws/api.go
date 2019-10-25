@@ -62,7 +62,7 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := validators.ValidateID(event.EventId)
+	id, err := validators.ValidateID(event.EventID)
 	if err != nil {
 		s.formResponse(rw, true, http.StatusInternalServerError, err.Error())
 		return
@@ -83,7 +83,7 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	req := &models.Event{
-		EventId:   id,
+		EventID:   id,
 		UserName:  event.UserName,
 		EventName: event.EventName,
 		Note:      event.Note,

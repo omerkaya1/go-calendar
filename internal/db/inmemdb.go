@@ -39,8 +39,8 @@ func (imes *InMemoryEventStorage) CreateEvent(ctx context.Context, event *models
 	if err := imes.checkEventCollision(event); err != nil {
 		return uuid.UUID{}, err
 	}
-	imes.db[event.EventId] = *event
-	return event.EventId, nil
+	imes.db[event.EventID] = *event
+	return event.EventID, nil
 }
 
 // DeleteEventById deletes an existing event, which ID was passed as an argument.
@@ -50,7 +50,7 @@ func (imes *InMemoryEventStorage) DeleteEventById(ctx context.Context, id uuid.U
 	if event, ok := imes.db[id]; !ok {
 		return errors.ErrEventDoesNotExist
 	} else {
-		delete(imes.db, event.EventId)
+		delete(imes.db, event.EventID)
 	}
 	return nil
 }
@@ -66,10 +66,16 @@ func (imes *InMemoryEventStorage) UpdateEventByID(ctx context.Context, id uuid.U
 		if err := imes.checkEventCollision(updated); err != nil {
 			return id, err
 		}
-		delete(imes.db, oldEvent.EventId)
-		imes.db[event.EventId] = *updated
-		return updated.EventId, nil
+		delete(imes.db, oldEvent.EventID)
+		imes.db[event.EventID] = *updated
+		return updated.EventID, nil
 	}
+}
+
+// GetUpcomingEvents .
+func (imes *InMemoryEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
+	log.Println("Implement me!")
+	return nil, nil
 }
 
 // UpdateEventByName .

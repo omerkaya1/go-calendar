@@ -5,6 +5,7 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/services"
+	mq "github.com/omerkaya1/go-calendar/internal/message-queue"
 	"github.com/omerkaya1/go-calendar/internal/rws"
 	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
@@ -64,8 +65,15 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%s: dbFromConfig failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
+
+	// Init MQ
+	q, err := mq.NewMessageQueue(cfg.Queue)
+	if err != nil {
+		log.Fatalf("%s: NewMessageQueue failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+
 	// Init RWS server
-	srv := rws.NewServer(cfg, logger, esp)
+	srv := rws.NewServer(cfg, logger, esp, q)
 	srv.Run()
 }
 

@@ -26,7 +26,7 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type Event struct {
-	EventId              string               `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	EventID              string               `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
 	UserName             string               `protobuf:"bytes,2,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
 	EventName            string               `protobuf:"bytes,3,opt,name=event_name,json=eventName,proto3" json:"event_name,omitempty"`
 	Note                 string               `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
@@ -62,9 +62,9 @@ func (m *Event) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Event proto.InternalMessageInfo
 
-func (m *Event) GetEventId() string {
+func (m *Event) GetEventID() string {
 	if m != nil {
-		return m.EventId
+		return m.EventID
 	}
 	return ""
 }
