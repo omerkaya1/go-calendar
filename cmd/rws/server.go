@@ -67,10 +67,15 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Init MQ
-	q, err := mq.NewMessageQueue(cfg.Queue)
+	q, err := mq.NewMessageQueue(cfg.Queue, esp.Processor)
 	if err != nil {
 		log.Fatalf("%s: NewMessageQueue failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
+
+	// Producer both scans and enqueues upcoming events into a message queue
+	go q.Produce()
+	// Receiver emulates the process of receiving messages from the message queue
+	go q.Receive()
 
 	// Init RWS server
 	srv := rws.NewServer(cfg, logger, esp, q)

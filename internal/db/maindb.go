@@ -23,11 +23,7 @@ func NewMainEventStorage(cfg conf.DBConf) (*MainEventStorage, error) {
 	if cfg.Name == "" || cfg.User == "" || cfg.SSLMode == "" {
 		return nil, errors.ErrBadDBConfiguration
 	}
-	db, err := sqlx.Open("pgx", fmt.Sprintf("user=%s dbname=%s sslmode=%s", cfg.User, cfg.Name, cfg.SSLMode))
-	if err != nil {
-		return nil, err
-	}
-	err = db.Ping()
+	db, err := sqlx.Connect("pgx", fmt.Sprintf("user=%s dbname=%s sslmode=%s", cfg.User, cfg.Name, cfg.SSLMode))
 	if err != nil {
 		return nil, err
 	}
@@ -102,26 +98,26 @@ func (edb *MainEventStorage) DeleteEventById(ctx context.Context, id uuid.UUID) 
 
 // GetUpcomingEvents method queries the DB and returns events for the current day and the day after
 func (edb *MainEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-		eventList := make([]models.Event, 0)
-		e := models.Event{}
-		query := "select * from events where start_time::date=current_date or start_time::date=current_date+interval '1 day'"
-		rows, err := edb.db.QueryxContext(ctx, query)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-		for rows.Next() {
+	eventList := make([]models.Event, 0)
+	e := models.Event{}
+	query := "select * from events where start_time::date=current_date or start_time::date=current_date+interval '1 day'"
+	rows, err := edb.db.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
 			if err := rows.StructScan(&e); err != nil {
 				return eventList, err
 			}
 			eventList = append(eventList, e)
 		}
-		return eventList, nil
 	}
+	return eventList, nil
 }
 
 // MEMO: for later implementation.
