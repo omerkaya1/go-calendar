@@ -39,27 +39,23 @@ build: ## Builds the project
 .PHONY: gen
 # gen: setup ## Triggers code generation of
 gen: ## Triggers code generation of
-	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc go-calendar-api/*.proto
+	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc api/*.proto
 
 .PHONY: dockerbuild-gc
 dockerbuild-gc: ## Builds a docker container with a project
-# Replace 0.${VERSION} with the Git tag
-	docker build -t omer513/go-calendar:0.${VERSION} -f ./deploy/go-calendar/Dockerfile .
+	docker build -t omer513/go-calendar:0.${VERSION} -f ./deployments/go-calendar/Dockerfile .
 
 .PHONY: dockerpush-gc
 dockerpush-gc: dockerbuild-gc ## Publishes the docker image to the registry
-	docker push
-
-.PHONY: dockerpush-all
-dockerpush-all: dockerpush-gc ## Publishes the docker image to the registry
+	docker push omer513/go-calendar:0.${VERSION}
 
 .PHONY: docker-compose-up
-docker-compose-up: ## Publishes the docker image to the registry
-	docker-compose -f ./deploy/docker-compose.yaml up -d
+docker-compose-up: ## Runs docker-compose command to kick-start the infrastructure
+	docker-compose -f ./deployments/docker-compose.yaml up -d
 
 .PHONY: docker-compose-down
-docker-compose-down: ## Publishes the docker image to the registry
-	docker-compose -f ./deploy/docker-compose.yaml down -v
+docker-compose-down: ## Runs docker-compose command to remove the turn down the infrastructure
+	docker-compose -f ./deployments/docker-compose.yaml down -v
 
 .PHONY: clean
 clean: ## Remove temporary files
