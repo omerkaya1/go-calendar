@@ -4,6 +4,7 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
 	"github.com/omerkaya1/go-calendar/internal/domain/services"
 	gca "github.com/omerkaya1/go-calendar/internal/grpc/go-calendar-api"
+	queue "github.com/omerkaya1/go-calendar/internal/message-queue"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net"
@@ -13,13 +14,15 @@ type GoCalendarServer struct {
 	Cfg          *conf.Config
 	Logger       *zap.Logger
 	EventService *services.EventService
+	Queue        *queue.MessageQueue
 }
 
-func NewServer(cfg *conf.Config, log *zap.Logger, es *services.EventService) *GoCalendarServer {
+func NewServer(cfg *conf.Config, log *zap.Logger, es *services.EventService, q *queue.MessageQueue) *GoCalendarServer {
 	return &GoCalendarServer{
 		Cfg:          cfg,
 		Logger:       log,
 		EventService: es,
+		Queue:        q,
 	}
 }
 

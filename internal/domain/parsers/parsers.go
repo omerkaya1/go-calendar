@@ -98,7 +98,7 @@ func MapToProtoResponseWithEvent(event *models.Event, err error) *gca.ResponseWi
 	return &gca.ResponseWithEvent{
 		Result: &gca.ResponseWithEvent_Event{
 			Event: &gca.Event{
-				EventId:   event.EventId.String(),
+				EventID:   event.EventID.String(),
 				UserName:  event.UserName,
 				EventName: event.EventName,
 				Note:      event.Note,
@@ -139,13 +139,13 @@ func MapProtoEventToOldEvent(er *gca.Event) (*models.Event, error) {
 	}
 	validators.ValidateTime(startTime, endTime)
 
-	id, err := validators.ValidateID(er.GetEventId())
+	id, err := validators.ValidateID(er.GetEventID())
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.Event{
-		EventId:   id,
+		EventID:   id,
 		UserName:  er.GetUserName(),
 		EventName: er.GetEventName(),
 		Note:      er.GetNote(),

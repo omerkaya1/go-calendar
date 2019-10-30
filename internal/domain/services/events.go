@@ -20,8 +20,8 @@ func (es *EventService) CreateEvent(ctx context.Context, event *models.Event) (u
 }
 
 func (es *EventService) UpdateEvent(ctx context.Context, event *models.Event) (uuid.UUID, error) {
-	if event.EventId.String() != "" {
-		return es.Processor.UpdateEventByID(ctx, event.EventId, event)
+	if event.EventID.String() != "" {
+		return es.Processor.UpdateEventByID(ctx, event.EventID, event)
 	}
 	return es.Processor.UpdateEventByName(ctx, event.EventName, event)
 }
@@ -32,4 +32,8 @@ func (es *EventService) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 
 func (es *EventService) GetEventsList(ctx context.Context) {
 
+}
+
+func (es *EventService) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
+	return es.Processor.GetUpcomingEvents(ctx)
 }

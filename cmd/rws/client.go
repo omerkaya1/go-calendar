@@ -75,7 +75,7 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 	client := getRWSClient()
 
 	event := &models.EventJSON{
-		EventId:   eventID,
+		EventID:   eventID,
 		UserName:  eventOwner,
 		EventName: eventName,
 		Note:      eventNote,
@@ -115,7 +115,7 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 
 	client := getRWSClient()
 
-	event := &models.EventJSON{EventId: eventID, UserName: eventOwner, EventName: eventName, Note: eventNote}
+	event := &models.EventJSON{EventID: eventID, UserName: eventOwner, EventName: eventName, Note: eventNote}
 	if startTime != "" && endTime != "" {
 		event.StartTime, event.EndTime = startTime, endTime
 	}

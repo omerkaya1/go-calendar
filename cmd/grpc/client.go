@@ -152,7 +152,7 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
-	req.EventId = id.String()
+	req.EventID = id.String()
 
 	resp, err := client.UpdateEvent(context.Background(), req)
 	if err != nil {
