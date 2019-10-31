@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/satori/go.uuid"
 )
@@ -24,6 +25,4 @@ type EventStorageProcessor interface {
 	DeleteEventById(context.Context, uuid.UUID) error
 	// DeleteAllUserEvents deletes all the events stored in the DB under a specified user
 	DeleteAllUserEvents(context.Context, string) error
-	// GetEventsByDate returns a slice of events that were created by the specified user
-	GetUpcomingEvents(context.Context) ([]models.Event, error)
 }

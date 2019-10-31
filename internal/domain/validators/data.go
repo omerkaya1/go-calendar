@@ -1,10 +1,11 @@
 package validators
 
 import (
-	"github.com/omerkaya1/go-calendar/internal/domain/errors"
-	"github.com/satori/go.uuid"
 	"log"
 	"time"
+
+	"github.com/omerkaya1/go-calendar/internal/domain/errors"
+	"github.com/satori/go.uuid"
 )
 
 // ValidateDate checks the passed date string according to UNIX time format and returns address of the time object on

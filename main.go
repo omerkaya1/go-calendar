@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/omerkaya1/go-calendar/cmd"
 	"log"
+
+	"github.com/omerkaya1/go-calendar/cmd"
 )
 
 func main() {

@@ -25,7 +25,7 @@ cover: test ## Runs all the tests and opens the coverage report
 	go tool cover -html=coverage.txt
 
 .PHONY: fmt
-fmt: setup ## Run goimports on all go files
+fmt: setup ## Runs goimports on all go files
 	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do goimports -w "$$file"; done
 
 .PHONY: lint
@@ -37,12 +37,11 @@ build: ## Builds the project
 	go build -o $(BUILD)/go-calendar $(CURDIR)
 
 .PHONY: gen
-# gen: setup ## Triggers code generation of
 gen: ## Triggers code generation of
 	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc api/*.proto
 
 .PHONY: dockerbuild-gc
-dockerbuild-gc: ## Builds a docker container with a project
+dockerbuild-gc: ## Builds a docker image with a project
 	docker build -t omer513/go-calendar:0.${VERSION} -f ./deployments/go-calendar/Dockerfile .
 
 .PHONY: dockerpush-gc
@@ -64,7 +63,7 @@ clean: ## Remove temporary files
 	rm -rf coverage.txt
 
 .PHONY: help
-help:
+help: ## Print this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := build

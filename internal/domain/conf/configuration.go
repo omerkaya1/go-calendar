@@ -1,18 +1,18 @@
 package conf
 
 import (
+	"path"
+
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/spf13/viper"
-	"path"
 )
 
 // MEMO: move to models?
 type Config struct {
-	Host     string    `json:"host" yaml:"host" toml:"host"`
-	Port     string    `json:"port" yaml:"port" toml:"port"`
-	LogLevel int       `json:"loglevel" yaml:"loglevel" toml:"loglevel"`
-	DB       DBConf    `json:"db" yaml:"db" toml:"db"`
-	Queue    QueueConf `json:"queue" yaml:"queue" toml:"queue"`
+	Host     string `json:"host" yaml:"host" toml:"host"`
+	Port     string `json:"port" yaml:"port" toml:"port"`
+	LogLevel int    `json:"loglevel" yaml:"loglevel" toml:"loglevel"`
+	DB       DBConf `json:"db" yaml:"db" toml:"db"`
 }
 
 type DBConf struct {
@@ -22,14 +22,6 @@ type DBConf struct {
 	Name     string `json:"name" yaml:"name" toml:"name"`
 	User     string `json:"user" yaml:"user" toml:"user"`
 	SSLMode  string `json:"sslmode" yaml:"sslmode" toml:"sslmode"`
-}
-
-type QueueConf struct {
-	Host     string `json:"host" yaml:"host" toml:"host"`
-	Port     string `json:"port" yaml:"port" toml:"port"`
-	User     string `json:"user" yaml:"user" toml:"user"`
-	Password string `json:"password" yaml:"password" toml:"password"`
-	Interval string `json:"interval" yaml:"interval" toml:"interval"`
 }
 
 func InitConfig(cfgPath string) (*Config, error) {
@@ -73,13 +65,6 @@ func CfgFromCmdParams(logLevel int, host, port, dbName, dbUser, dbHost, dbPort, 
 			Name:     dbName,
 			User:     dbUser,
 			SSLMode:  sslMode,
-		},
-		// For now, assume the
-		Queue: QueueConf{
-			Host:     host,
-			Port:     "5672",
-			User:     "guest",
-			Password: "guest",
 		},
 	}
 }

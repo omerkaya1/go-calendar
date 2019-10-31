@@ -1,6 +1,8 @@
 package parsers
 
 import (
+	"time"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
@@ -8,7 +10,6 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/domain/validators"
 	gca "github.com/omerkaya1/go-calendar/internal/grpc/go-calendar-api"
 	"github.com/satori/go.uuid"
-	"time"
 )
 
 // ParseTime is a helper function that converts a time.Time object to a proto Event time object

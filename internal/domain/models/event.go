@@ -1,8 +1,9 @@
 package models
 
 import (
-	"github.com/satori/go.uuid"
 	"time"
+
+	"github.com/satori/go.uuid"
 )
 
 // Event struct is the main internal representation of an event

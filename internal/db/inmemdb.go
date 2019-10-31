@@ -2,11 +2,12 @@ package db
 
 import (
 	"context"
+	"log"
+	"sync"
+
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/satori/go.uuid"
-	"log"
-	"sync"
 )
 
 // InMemoryEventStorage represents an object that holds all created events in memory.

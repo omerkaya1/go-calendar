@@ -1,8 +1,9 @@
 package log
 
 import (
-	"go.uber.org/zap"
 	"log"
+
+	"go.uber.org/zap"
 )
 
 // InitLogger method sets up a server logger according to the specified log level

@@ -3,13 +3,14 @@ package db
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/satori/go.uuid"
-	"sync"
 )
 
 // MainEventStorage object holds everything related to the DB interactions

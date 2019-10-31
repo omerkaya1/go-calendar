@@ -1,15 +1,15 @@
 package rws
 
 import (
+	"log"
+
 	"github.com/omerkaya1/go-calendar/internal/db"
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/services"
-	mq "github.com/omerkaya1/go-calendar/internal/message-queue"
 	"github.com/omerkaya1/go-calendar/internal/rws"
 	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 var (
@@ -67,19 +67,8 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s: dbFromConfig failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
 
-	// Init MQ
-	q, err := mq.NewMessageQueue(cfg.Queue, esp.Processor)
-	if err != nil {
-		log.Fatalf("%s: NewMessageQueue failed: %s", errors.ErrServiceCmdPrefix, err)
-	}
-
-	// Producer both scans and enqueues upcoming events into a message queue
-	go q.Produce()
-	// Receiver emulates the process of receiving messages from the message queue
-	go q.Receive()
-
 	// Init RWS server
-	srv := rws.NewServer(cfg, logger, esp, q)
+	srv := rws.NewServer(cfg, logger, esp)
 	srv.Run()
 }
 

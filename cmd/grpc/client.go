@@ -2,14 +2,15 @@ package grpc
 
 import (
 	"context"
+	"log"
+	"time"
+
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/parsers"
 	"github.com/omerkaya1/go-calendar/internal/domain/validators"
 	gca "github.com/omerkaya1/go-calendar/internal/grpc/go-calendar-api"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"log"
-	"time"
 )
 
 var host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string

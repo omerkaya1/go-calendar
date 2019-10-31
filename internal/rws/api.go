@@ -3,11 +3,12 @@ package rws
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/omerkaya1/go-calendar/internal/domain/validators"
-	"net/http"
-	"time"
 )
 
 const (

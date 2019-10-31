@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/omerkaya1/go-calendar/internal/rws"
 	"github.com/spf13/cobra"
-	"log"
-	"net/http"
-	"time"
 )
 
 var host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string

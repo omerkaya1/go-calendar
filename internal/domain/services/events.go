@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	"github.com/omerkaya1/go-calendar/internal/domain/interfaces"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	uuid "github.com/satori/go.uuid"
@@ -32,8 +33,4 @@ func (es *EventService) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 
 func (es *EventService) GetEventsList(ctx context.Context) {
 
-}
-
-func (es *EventService) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
-	return es.Processor.GetUpcomingEvents(ctx)
 }
