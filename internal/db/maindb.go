@@ -3,13 +3,14 @@ package db
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/omerkaya1/go-calendar/internal/domain/conf"
 	"github.com/omerkaya1/go-calendar/internal/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/domain/models"
 	"github.com/satori/go.uuid"
-	"sync"
 )
 
 // MainEventStorage object holds everything related to the DB interactions
@@ -20,10 +21,11 @@ type MainEventStorage struct {
 
 // NewMainEventStorage returns new MainEventStorage object to the callee
 func NewMainEventStorage(cfg conf.DBConf) (*MainEventStorage, error) {
-	if cfg.Name == "" || cfg.User == "" || cfg.SSLMode == "" {
+	if cfg.Name == "" || cfg.User == "" || cfg.SSLMode == "" || cfg.Password == "" {
 		return nil, errors.ErrBadDBConfiguration
 	}
-	db, err := sqlx.Connect("pgx", fmt.Sprintf("user=%s dbname=%s sslmode=%s", cfg.User, cfg.Name, cfg.SSLMode))
+	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.Password, cfg.User, cfg.Name, cfg.SSLMode)
+	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}

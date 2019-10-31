@@ -1,17 +1,13 @@
 {
-  "host": "127.0.0.1",
+  "host": "go-calendar",
   "port": "7070",
-  "loglevel": 1,
+  "loglevel": 2,
   "db": {
     "name": "calendar_db",
     "user": "calendar_user",
-    "sslmode": "disable"
-  },
-  "queue": {
-    "host": "127.0.0.1",
-    "port": "5672",
-    "user": "guest",
-    "password": "guest",
-    "interval": "24h"
+    "sslmode": "disable",
+    "host": "postgres",
+    "password": "calendar",
+    "port": "5432"
   }
 }

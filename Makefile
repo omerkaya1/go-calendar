@@ -1,4 +1,5 @@
 BUILD= $(CURDIR)/bin
+VERSION= $(shell git rev-list HEAD --count)
 $(shell mkdir -p $(BUILD))
 export GO111MODULE=on
 export GOPATH=$(go env GOPATH)
@@ -24,7 +25,7 @@ cover: test ## Runs all the tests and opens the coverage report
 	go tool cover -html=coverage.txt
 
 .PHONY: fmt
-fmt: setup ## Run goimports on all go files
+fmt: setup ## Runs goimports on all go files
 	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do goimports -w "$$file"; done
 
 .PHONY: lint
@@ -36,18 +37,24 @@ build: ## Builds the project
 	go build -o $(BUILD)/go-calendar $(CURDIR)
 
 .PHONY: gen
-# gen: setup ## Triggers code generation of
 gen: ## Triggers code generation of
-	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc go-calendar-api/*.proto
+	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc api/*.proto
 
-.PHONY: dockerbuild
-dockerbuild: ## Builds a docker container with a project
-# Replace registry.blabla.com/omerkaya1/go-calendar with a real address where the image will be stored
-	docker build -t registry.blabla.com/omerkaya1/go-calendar -f .
+.PHONY: dockerbuild-gc
+dockerbuild-gc: ## Builds a docker image with a project
+	docker build -t omer513/go-calendar:0.${VERSION} -f ./deployments/go-calendar/Dockerfile .
 
-.PHONY: dockerpush
-dockerpush: dockerbuild ## Publishes the docker image to the registry
-	go build -o $(BUILD)/go-calendar $(CURDIR)/cmd/go-calendar
+.PHONY: dockerpush-gc
+dockerpush-gc: dockerbuild-gc ## Publishes the docker image to the registry
+	docker push omer513/go-calendar:0.${VERSION}
+
+.PHONY: docker-compose-up
+docker-compose-up: ## Runs docker-compose command to kick-start the infrastructure
+	docker-compose -f ./deployments/docker-compose.yaml up -d
+
+.PHONY: docker-compose-down
+docker-compose-down: ## Runs docker-compose command to remove the turn down the infrastructure
+	docker-compose -f ./deployments/docker-compose.yaml down -v
 
 .PHONY: clean
 clean: ## Remove temporary files
@@ -56,7 +63,7 @@ clean: ## Remove temporary files
 	rm -rf coverage.txt
 
 .PHONY: help
-help:
+help: ## Print this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := build

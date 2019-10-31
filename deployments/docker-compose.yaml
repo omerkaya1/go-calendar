@@ -1,0 +1,77 @@
+version: "3.7"
+services:
+  # PostgreSQL container setup
+  postgres:
+    image: postgres:10.0-alpine
+    container_name: pgs_db
+    environment:
+      - POSTGRES_USER=calendar_user
+      - POSTGRES_PASSWORD=calendar
+      - POSTGRES_DB=calendar_db
+    volumes:
+      - ../db/data:/var/lib/postgresql/data
+      - ../db/db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "54321:5432"
+    networks:
+      db-net:
+        aliases:
+          - postgres
+
+  # RabbitMQ container setup
+  rabbitmq:
+    image: rabbitmq:3.8.0-alpine
+    container_name: rmq
+    ports:
+      - "56721:5672"
+    networks:
+      rabbit-net:
+        aliases:
+          - rabbitmq
+
+  # Notification service
+  notification:
+    image: omer513/notification
+    container_name: notification
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbit-net
+    restart: on-failure
+
+  # Watcher service
+  watcher:
+    image: omer513/watcher
+    container_name: watcher
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - db-net
+      - rabbit-net
+    restart: on-failure
+
+  # Go Calendar service
+  go-calendar:
+    container_name: gcs
+    build:
+      context: ../.
+      dockerfile: ./deployments/go-calendar/Dockerfile
+    volumes:
+      - ../configs:/opt/go-calendar/configs
+    depends_on:
+      - postgres
+    ports:
+      - "7070:7070"
+    networks:
+      db-net:
+        aliases:
+          - go-calendar
+    restart: on-failure
+
+# Network definitions
+networks:
+  db-net:
+    driver: bridge
+  rabbit-net:
+    driver: bridge
