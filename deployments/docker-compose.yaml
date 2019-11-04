@@ -31,8 +31,10 @@ services:
 
   # Notification service
   notification:
-    image: omer513/notification
     container_name: notification
+    build:
+      context: ../.
+      dockerfile: ./deployments/notification/Dockerfile
     depends_on:
       - rabbitmq
     networks:
@@ -41,8 +43,10 @@ services:
 
   # Watcher service
   watcher:
-    image: omer513/watcher
     container_name: watcher
+    build:
+      context: ../.
+      dockerfile: ./deployments/watcher/Dockerfile
     depends_on:
       - postgres
       - rabbitmq
