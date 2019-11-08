@@ -1,13 +1,21 @@
 {
   "host": "go-calendar",
   "port": "7070",
-  "loglevel": 2,
+  "level": 2,
   "db": {
     "name": "calendar_db",
     "user": "calendar_user",
-    "sslmode": "disable",
+    "ssl": "disable",
     "host": "postgres",
     "password": "calendar",
     "port": "5432"
+  },
+  "queue": {
+    "host": "rabbitmq",
+    "port": "5672",
+    "user": "guest",
+    "password": "guest",
+    "interval": "10s",
+    "name": "events"
   }
 }

@@ -5,8 +5,9 @@ import (
 	"log"
 	"sync"
 
-	"github.com/omerkaya1/go-calendar/internal/domain/errors"
-	"github.com/omerkaya1/go-calendar/internal/domain/models"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/models"
+
 	"github.com/satori/go.uuid"
 )
 
@@ -77,12 +78,6 @@ func (imes *InMemoryEventStorage) UpdateEventByID(ctx context.Context, id uuid.U
 func (imes *InMemoryEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Event, error) {
 	log.Println("Implement me!")
 	return nil, nil
-}
-
-// UpdateEventByName .
-func (imes *InMemoryEventStorage) UpdateEventByName(ctx context.Context, eventName string, event *models.Event) (uuid.UUID, error) {
-	log.Println("Implement me!")
-	return uuid.UUID{}, nil
 }
 
 // GetUserEvents .

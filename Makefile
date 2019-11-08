@@ -32,21 +32,48 @@ fmt: setup ## Runs goimports on all go files
 lint: setup ## Runs all the linters
 	golint ./internal ./cmd ./configs ./log ./
 
-.PHONY: build
-build: ## Builds the project
-	go build -o $(BUILD)/go-calendar $(CURDIR)
+.PHONY: build-gcs
+build-gcs: ## Builds the go-calendar project
+	go build -o $(BUILD)/go-calendar $(CURDIR)/cmd/go-calendar
+
+.PHONY: build-notification
+build-notification: ## Builds the notification project
+	go build -o $(BUILD)/notification $(CURDIR)/cmd/notification
+
+.PHONY: build-watcher
+build-watcher: ## Builds the watcher project
+	go build -o $(BUILD)/watcher $(CURDIR)/cmd/watcher
+
+.PHONY: build-all
+build-all: build-gcs build-notification build-watcher ## Builds all binaries of the project
 
 .PHONY: gen
-gen: ## Triggers code generation of
+gen: ## Triggers the protobuf code generation
 	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc api/*.proto
 
-.PHONY: dockerbuild-gc
-dockerbuild-gc: ## Builds a docker image with a project
+.PHONY: dockerbuild-gcs
+dockerbuild-gcs: ## Builds a docker image with the go-calendar project
 	docker build -t omer513/go-calendar:0.${VERSION} -f ./deployments/go-calendar/Dockerfile .
 
-.PHONY: dockerpush-gc
-dockerpush-gc: dockerbuild-gc ## Publishes the docker image to the registry
+.PHONY: dockerpush-gcs
+dockerpush-gcs: dockerbuild-gcs ## Publishes the docker image to the registry
 	docker push omer513/go-calendar:0.${VERSION}
+
+.PHONY: dockerbuild-notification
+dockerbuild-notification: ## Builds a docker image with the notification project
+	docker build -t omer513/notification:0.${VERSION} -f ./deployments/notification/Dockerfile .
+
+.PHONY: dockerpush-notification
+dockerpush-notification: dockerbuild-notification ## Publishes the docker image to the registry
+	docker push omer513/notification:0.${VERSION}
+
+.PHONY: dockerbuild-watcher
+dockerbuild-watcher: ## Builds a docker image with a project
+	docker build -t omer513/watcher:0.${VERSION} -f ./deployments/watcher/Dockerfile .
+
+.PHONY: dockerpush-watcher
+dockerpush-watcher: dockerbuild-watcher ## Publishes the docker image to the registry
+	docker push omer513/watcher:0.${VERSION}
 
 .PHONY: docker-compose-up
 docker-compose-up: ## Runs docker-compose command to kick-start the infrastructure
@@ -58,7 +85,9 @@ docker-compose-down: ## Runs docker-compose command to remove the turn down the 
 
 .PHONY: clean
 clean: ## Remove temporary files
-	go clean $(CURDIR)
+	go clean $(CURDIR)/cmd/go-calendar
+	go clean $(CURDIR)/cmd/notification
+	go clean $(CURDIR)/cmd/watcher
 	rm -rf $(BUILD)
 	rm -rf coverage.txt
 
@@ -66,4 +95,4 @@ clean: ## Remove temporary files
 help: ## Print this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := build-gcs

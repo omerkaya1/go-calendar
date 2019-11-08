@@ -3,33 +3,31 @@ package db
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
-	"github.com/omerkaya1/go-calendar/internal/domain/conf"
-	"github.com/omerkaya1/go-calendar/internal/domain/errors"
-	"github.com/omerkaya1/go-calendar/internal/domain/models"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/models"
 	"github.com/satori/go.uuid"
 )
 
 // MainEventStorage object holds everything related to the DB interactions
 type MainEventStorage struct {
-	m  *sync.RWMutex
 	db *sqlx.DB
 }
 
 // NewMainEventStorage returns new MainEventStorage object to the callee
-func NewMainEventStorage(cfg conf.DBConf) (*MainEventStorage, error) {
-	if cfg.Name == "" || cfg.User == "" || cfg.SSLMode == "" || cfg.Password == "" {
+func NewMainEventStorage(cfg config.DBConf) (*MainEventStorage, error) {
+	if cfg.Name == "" || cfg.User == "" || cfg.SSL == "" || cfg.Password == "" {
 		return nil, errors.ErrBadDBConfiguration
 	}
-	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.Password, cfg.User, cfg.Name, cfg.SSLMode)
+	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.Password, cfg.User, cfg.Name, cfg.SSL)
 	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
-	return &MainEventStorage{db: db, m: &sync.RWMutex{}}, nil
+	return &MainEventStorage{db: db}, nil
 }
 
 // GetEventByID returns an event requested by the callee
@@ -122,21 +120,18 @@ func (edb *MainEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Ev
 	return eventList, nil
 }
 
-// MEMO: for later implementation.
 // GetUserEvents .
 func (edb *MainEventStorage) GetUserEvents(ctx context.Context, user string) ([]models.Event, error) {
 	return nil, nil
 }
 
+// MEMO: for later implementation.
+// GetEventByName .
 func (edb *MainEventStorage) GetEventByName(ctx context.Context, name string) (models.Event, error) {
 	return models.Event{}, nil
 }
 
-// UpdateEventByName .
-func (edb *MainEventStorage) UpdateEventByName(ctx context.Context, eventName string, event *models.Event) (uuid.UUID, error) {
-	return uuid.UUID{}, nil
-}
-
+// DeleteAllUserEvents .
 func (edb *MainEventStorage) DeleteAllUserEvents(ctx context.Context, user string) error {
 	return nil
 }
