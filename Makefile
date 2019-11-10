@@ -9,6 +9,7 @@ setup: ## Install all the build and lint dependencies
 	go get -u golang.org/x/tools
 	go get -u golang.org/x/lint/golint
 	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get -u github.com/DATA-DOG/godog/cmd/godog
 
 .PHONY: mod
 mod: ## Runs mod
@@ -19,6 +20,10 @@ mod: ## Runs mod
 .PHONY: test
 test: setup ## Runs all the tests
 	echo 'mode: atomic' > coverage.txt && go test -covermode=atomic -coverprofile=coverage.txt -v -race -timeout=30s ./...
+
+.PHONY: integration-test
+integration-test: setup ## Runs integration tests
+	go test -v -timeout=30s ./internal/go-calendar/grpc ./internal/mq/
 
 .PHONY: cover
 cover: test ## Runs all the tests and opens the coverage report
@@ -32,8 +37,12 @@ fmt: setup ## Runs goimports on all go files
 lint: setup ## Runs all the linters
 	golint ./internal ./cmd ./configs ./log ./
 
+.PHONY: gen
+gen: ## Triggers the protobuf code generation
+	protoc --go_out=plugins=grpc:$(CURDIR)/internal/go-calendar/grpc api/*.proto
+
 .PHONY: build-gcs
-build-gcs: ## Builds the go-calendar project
+build-gcs: gen ## Builds the go-calendar project
 	go build -o $(BUILD)/go-calendar $(CURDIR)/cmd/go-calendar
 
 .PHONY: build-notification
@@ -46,10 +55,6 @@ build-watcher: ## Builds the watcher project
 
 .PHONY: build-all
 build-all: build-gcs build-notification build-watcher ## Builds all binaries of the project
-
-.PHONY: gen
-gen: ## Triggers the protobuf code generation
-	protoc --go_out=plugins=grpc:$(CURDIR)/internal/grpc api/*.proto
 
 .PHONY: dockerbuild-gcs
 dockerbuild-gcs: ## Builds a docker image with the go-calendar project
@@ -82,6 +87,14 @@ docker-compose-up: ## Runs docker-compose command to kick-start the infrastructu
 .PHONY: docker-compose-down
 docker-compose-down: ## Runs docker-compose command to remove the turn down the infrastructure
 	docker-compose -f ./deployments/docker-compose.yaml down -v
+
+.PHONY: integration
+integration: ##
+	docker-compose -f ./deployments/docker-compose.test.yaml up --build -d ;\
+	test_status_code=0 ;\
+	docker-compose -f ./deployments/docker-compose.test.yaml run integration_tests || test_status_code=$$? ;\
+	docker-compose -f ./deployments/docker-compose.test.yaml down ;\
+	exit $$test_status_code ;\
 
 .PHONY: clean
 clean: ## Remove temporary files

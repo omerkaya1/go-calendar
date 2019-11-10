@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/go-calendar-api"
+	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/api"
 
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/parsers"
@@ -15,6 +15,7 @@ import (
 )
 
 var host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string
+var expired, list bool
 
 var (
 	ClientCmd = &cobra.Command{
@@ -28,7 +29,7 @@ var (
 		Short: "Create calendar event",
 		Run:   createCmdFunc,
 		Example: `  go-calendar grpc-client create -t "Saturday party" -n "Buy soda and apples!" -o "John Doe" 
-		-s "Tue Oct 1 18:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
+		-b "Tue Oct 1 18:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
 	}
 
 	GetActionCmd = &cobra.Command{
@@ -43,7 +44,7 @@ var (
 		Short: "Update calendar event",
 		Run:   updateCmdFunc,
 		Example: `  go-calendar grpc-client update -i sdkjf-8783-sdfs-341 -t "Saturday party(postponed)" -o "John Doe" 
--s "Tue Oct 1 19:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
+-b "Tue Oct 1 19:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
 	}
 
 	DeleteActionCmd = &cobra.Command{
@@ -62,10 +63,12 @@ func init() {
 	ClientCmd.PersistentFlags().StringVarP(&port, "port", "p", "7070", "port of the host")
 	ClientCmd.PersistentFlags().StringVarP(&eventID, "id", "i", "", "internal event id")
 	ClientCmd.PersistentFlags().StringVarP(&eventOwner, "owner", "o", "", "owner of the event")
-	ClientCmd.PersistentFlags().StringVarP(&eventName, "event-title", "t", "", "event name")
+	ClientCmd.PersistentFlags().StringVarP(&eventName, "title", "t", "", "event name")
 	ClientCmd.PersistentFlags().StringVarP(&eventNote, "note", "n", "", "additional note related to the event")
-	ClientCmd.PersistentFlags().StringVarP(&startTime, "event-start", "b", "", "starting date and hour of the event")
-	ClientCmd.PersistentFlags().StringVarP(&endTime, "event-end", "e", "", "ending date and hour of the event")
+	ClientCmd.PersistentFlags().StringVarP(&startTime, "start", "b", "", "starting date and hour of the event")
+	ClientCmd.PersistentFlags().StringVarP(&endTime, "end", "e", "", "ending date and hour of the event")
+	ClientCmd.PersistentFlags().BoolVarP(&expired, "expired", "x", false, "delete expired events for a user")
+	ClientCmd.PersistentFlags().BoolVarP(&list, "list", "l", false, "list all events belonging to a user")
 }
 
 func createCmdFunc(cmd *cobra.Command, args []string) {
@@ -113,12 +116,11 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func updateCmdFunc(cmd *cobra.Command, args []string) {
-	if eventID == "" && eventName == "" {
+	if eventID == "" {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-
+	// TODO: create a mapper method to handle these cases Event to ProtoEvent
 	client := getGRPCClient()
-
 	req := &gca.Event{
 		EventName: eventName,
 		Note:      eventNote,
@@ -167,56 +169,86 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func getCmdFunc(cmd *cobra.Command, args []string) {
-	if eventID == "" && eventName == "" {
+	client := getGRPCClient()
+	switch {
+	case eventID != "":
+		id, err := validators.ValidateID(eventID)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		req := &gca.RequestEventByID{
+			EventID: id.String(),
+		}
+		resp, err := client.GetEvent(context.Background(), req)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		if resp.GetError() != "" {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
+		}
+		e := resp.GetEvent()
+		start, _ := parsers.ParseProtoToTime(e.StartTime)
+		end, _ := parsers.ParseProtoToTime(e.EndTime)
+		log.Printf("%s: %s, starts: %s, ends: %s\n", e.UserName, e.EventName, start.String(), end.String())
+		break
+	case list && eventOwner != "":
+		req := &gca.RequestUser{
+			UserName: eventOwner,
+		}
+		resp, err := client.GetUserEvents(context.Background(), req)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		if resp.GetError() != "" {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
+		}
+		for _, e := range resp.GetEvents().Events {
+			start, _ := parsers.ParseProtoToTime(e.StartTime)
+			end, _ := parsers.ParseProtoToTime(e.EndTime)
+			log.Printf("%s: %s, starts: %s, ends: %s\n", e.UserName, e.EventName, start.String(), end.String())
+		}
+		break
+	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-
-	client := getGRPCClient()
-
-	id, err := validators.ValidateID(eventID)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
-	req := &gca.RequestEventByID{
-		EventID: id.String(),
-	}
-
-	resp, err := client.GetEvent(context.Background(), req)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
-	if resp.GetError() != "" {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
-	}
-	log.Printf("%v\n", resp.GetEvent())
 }
 
 func deleteCmdFunc(cmd *cobra.Command, args []string) {
-	if eventID == "" && eventName == "" {
+	client := getGRPCClient()
+	switch {
+	case eventID != "":
+		id, err := validators.ValidateID(eventID)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		req := &gca.RequestEventByID{
+			EventID: id.String(),
+		}
+		resp, err := client.DeleteEvent(context.Background(), req)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		if resp.GetError() != "" {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
+		}
+		log.Printf("%v\n", resp.GetResponse())
+		break
+	case expired && eventOwner != "":
+		req := &gca.RequestUser{
+			UserName: eventOwner,
+		}
+		resp, err := client.DeleteExpiredEvents(context.Background(), req)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		if resp.GetError() != "" {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
+		}
+		log.Printf("%v\n", resp.GetResponse())
+		break
+	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-
-	client := getGRPCClient()
-
-	id, err := validators.ValidateID(eventID)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
-	req := &gca.RequestEventByID{
-		EventID: id.String(),
-	}
-
-	resp, err := client.DeleteEvent(context.Background(), req)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-	if resp.GetError() != "" {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
-	}
-	log.Printf("%v\n", resp.GetResponse())
 }
 
 func getGRPCClient() gca.GoCalendarServerClient {

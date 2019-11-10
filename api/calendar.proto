@@ -19,9 +19,20 @@ message CreateEventRequest {
     google.protobuf.Timestamp end_time = 5;
 }
 
+message Events {
+    repeated Event events = 1;
+}
+
 message ResponseWithEvent {
     oneof result {
         Event event = 1;
+        string error = 2;
+    }
+}
+
+message ResponseWithEvents {
+    oneof result {
+        Events events = 1;
         string error = 2;
     }
 }
@@ -35,6 +46,10 @@ message ResponseWithEventID {
 
 message RequestEventByID {
     string eventID = 1;
+}
+
+message RequestUser {
+    string user_name = 1;
 }
 
 message ResponseSuccess {
@@ -54,6 +69,8 @@ service GoCalendarServer {
     rpc UpdateEvent(Event) returns (ResponseWithEventID) {}
     // DeleteEventByID deletes an event from the DB. It returns an event id on success or an error on failure.
     rpc DeleteEvent(RequestEventByID) returns (ResponseSuccess) {}
-    // TODO: Implement later!
-    // rpc ListEvents(Event) returns (ResponseWithEvent) {}
+    // GetUserEvents returns a list of events that belong to a specified user
+    rpc GetUserEvents(RequestUser) returns (ResponseWithEvents) {}
+    // DeleteExpiredEvents deletes all the expired events that belong to a specified user
+    rpc DeleteExpiredEvents(RequestUser) returns (ResponseSuccess) {}
 }

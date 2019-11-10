@@ -29,10 +29,10 @@ func (es *EventService) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	return es.Processor.DeleteEventById(ctx, id)
 }
 
-func (es *EventService) GetEventsList(ctx context.Context, name string) ([]models.Event, error) {
-	return es.Processor.GetUserEvents(ctx, name)
+func (es *EventService) GetEventsList(ctx context.Context, user string) ([]models.Event, error) {
+	return es.Processor.GetUserEvents(ctx, user)
 }
 
-func (es *EventService) DeleteUserEvents(ctx context.Context, name string) error {
-	return es.Processor.DeleteAllUserEvents(ctx, name)
+func (es *EventService) DeleteOldEvents(ctx context.Context, user string) (int64, error) {
+	return es.Processor.DeleteExpiredEvents(ctx, user)
 }

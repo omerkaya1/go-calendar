@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/go-calendar-api"
+	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/api"
 	"github.com/satori/go.uuid"
 )
 
@@ -111,9 +111,55 @@ func MapToProtoResponseWithEvent(event *models.Event, err error) *gca.ResponseWi
 	}
 }
 
+// MapToProtoResponseWithEvent is a helper function that converts an Event object to a GRPC Event response
+func MapToProtoResponseWithAListOfEvents(events []models.Event, err error) *gca.ResponseWithEvents {
+	if err != nil {
+		return &gca.ResponseWithEvents{
+			Result: &gca.ResponseWithEvents_Error{
+				Error: err.Error(),
+			},
+		}
+	}
+
+	protoEvents := &gca.Events{}
+	for _, event := range events {
+		startTime, err := ParseTimeToProto(event.StartTime)
+		if err != nil {
+			return &gca.ResponseWithEvents{
+				Result: &gca.ResponseWithEvents_Error{
+					Error: err.Error(),
+				},
+			}
+		}
+
+		endTime, err := ParseTimeToProto(event.EndTime)
+		if err != nil {
+			return &gca.ResponseWithEvents{
+				Result: &gca.ResponseWithEvents_Error{
+					Error: err.Error(),
+				},
+			}
+		}
+
+		protoEvents.Events = append(protoEvents.Events, &gca.Event{
+			EventId:   event.EventID.String(),
+			UserName:  event.UserName,
+			EventName: event.EventName,
+			Note:      event.Note,
+			StartTime: startTime,
+			EndTime:   endTime,
+		})
+	}
+	return &gca.ResponseWithEvents{
+		Result: &gca.ResponseWithEvents_Events{
+			Events: protoEvents,
+		},
+	}
+}
+
 // TODO: get rid of the code duplication!
-// MapProtoEventToEvent is a helper function that converts GRPC CreateEvent request to Event
-func MapProtoEventToEvent(cr *gca.CreateEventRequest) (*models.Event, error) {
+// MapProtoRequestEventToEvent is a helper function that converts GRPC CreateEvent request to Event
+func MapProtoRequestEventToEvent(cr *gca.CreateEventRequest) (*models.Event, error) {
 	startTime, err := ParseProtoToTime(cr.GetStartTime())
 	if err != nil {
 		return nil, err
@@ -129,28 +175,56 @@ func MapProtoEventToEvent(cr *gca.CreateEventRequest) (*models.Event, error) {
 }
 
 // MapProtoEventToOldEvent is a helper function that converts GRPC Event request to Event
-func MapProtoEventToOldEvent(er *gca.Event) (*models.Event, error) {
-	startTime, err := ParseProtoToTime(er.GetStartTime())
+func MapProtoEventToOldEvent(e *gca.Event) (*models.Event, error) {
+	startTime, err := ParseProtoToTime(e.GetStartTime())
 	if err != nil {
 		return nil, err
 	}
 
-	endTime, err := ParseProtoToTime(er.GetEndTime())
+	endTime, err := ParseProtoToTime(e.GetEndTime())
 	if err != nil {
 		return nil, err
 	}
 	validators.ValidateTime(startTime, endTime)
 
-	id, err := validators.ValidateID(er.GetEventId())
+	id, err := validators.ValidateID(e.GetEventId())
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.Event{
 		EventID:   id,
-		UserName:  er.GetUserName(),
-		EventName: er.GetEventName(),
-		Note:      er.GetNote(),
+		UserName:  e.GetUserName(),
+		EventName: e.GetEventName(),
+		Note:      e.GetNote(),
+		StartTime: startTime,
+		EndTime:   endTime,
+	}, nil
+}
+
+// MapProtoEventToEvent is a helper function that converts GRPC CreateEvent request to Event
+func MapProtoEventToEvent(cr *gca.Event) (*models.Event, error) {
+	startTime, err := ParseProtoToTime(cr.GetStartTime())
+	if err != nil {
+		return nil, err
+	}
+
+	endTime, err := ParseProtoToTime(cr.GetEndTime())
+	if err != nil {
+		return nil, err
+	}
+	validators.ValidateTime(startTime, endTime)
+
+	id, err := validators.ValidateID(cr.GetEventId())
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.Event{
+		EventID:   id,
+		UserName:  cr.GetUserName(),
+		EventName: cr.GetEventName(),
+		Note:      cr.GetNote(),
 		StartTime: startTime,
 		EndTime:   endTime,
 	}, nil

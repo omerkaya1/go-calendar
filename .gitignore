@@ -5,5 +5,5 @@ vendor
 bin/go-calendar
 bin
 db/data
-configs/config.yaml
+configs/config.json
 configs/config.toml

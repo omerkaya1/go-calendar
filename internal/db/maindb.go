@@ -117,23 +117,56 @@ func (edb *MainEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Ev
 			eventList = append(eventList, e)
 		}
 	}
+	// Check the DB error
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return eventList, nil
 }
 
 // GetUserEvents .
 func (edb *MainEventStorage) GetUserEvents(ctx context.Context, user string) ([]models.Event, error) {
-	return nil, nil
-}
-
-// MEMO: for later implementation.
-// GetEventByName .
-func (edb *MainEventStorage) GetEventByName(ctx context.Context, name string) (models.Event, error) {
-	return models.Event{}, nil
+	eventList := make([]models.Event, 0)
+	e := models.Event{}
+	query := `select * from events where user_name=$1 order by start_time asc`
+	rows, err := edb.db.QueryxContext(ctx, query, user)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			if err := rows.StructScan(&e); err != nil {
+				return eventList, err
+			}
+			eventList = append(eventList, e)
+		}
+	}
+	// Check the DB error
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return eventList, nil
 }
 
 // DeleteAllUserEvents .
-func (edb *MainEventStorage) DeleteAllUserEvents(ctx context.Context, user string) error {
-	return nil
+func (edb *MainEventStorage) DeleteExpiredEvents(ctx context.Context, user string) (int64, error) {
+	query := `delete from events where user_name=$1 and end_time::date<current_date`
+	result, err := edb.db.ExecContext(ctx, query, user)
+	if err != nil {
+		return 0, err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if n == 0 {
+		return n, errors.ErrNoOpDBAction
+	}
+	return n, nil
 }
 
 func (edb *MainEventStorage) checkIntersection(ctx context.Context, event *models.Event) error {
