@@ -90,10 +90,11 @@ docker-compose-down: ## Runs docker-compose command to remove the turn down the 
 
 .PHONY: integration
 integration: ##
-	docker-compose -f ./deployments/docker-compose.test.yaml up --build -d ;\
+	docker-compose -f ./deployments/docker-compose.test.yaml up --build -d;\
 	test_status_code=0 ;\
-	docker-compose -f ./deployments/docker-compose.test.yaml run integration_tests || test_status_code=$$? ;\
-	docker-compose -f ./deployments/docker-compose.test.yaml down ;\
+	docker-compose -f ./deployments/docker-compose.test.yaml run integration_tests ./bin/integration-test || test_status_code=$$? ;\
+	docker-compose -f ./deployments/docker-compose.test.yaml down --volumes;\
+	printf "Return code is $$test_status_code\n" ;\
 	exit $$test_status_code ;\
 
 .PHONY: clean

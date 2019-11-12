@@ -1,4 +1,4 @@
-package grpc
+package calendar
 
 import (
 	"context"
@@ -12,11 +12,8 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/parsers"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/validators"
 	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/api"
-	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
-	"os"
 	"strings"
-	"testing"
 )
 
 type testCalendar struct {
@@ -30,7 +27,7 @@ type testCalendar struct {
 }
 
 func (ct *testCalendar) _setup() error {
-	cfg, err := config.InitConfig("./../../../configs/config.json")
+	cfg, err := config.InitConfig("./configs/config.json")
 	if err != nil {
 		return err
 	}
@@ -46,7 +43,7 @@ func (ct *testCalendar) everythingIsOk() error {
 	return ct._setup()
 }
 
-func (ct *testCalendar) iMakeASendARequestToStoreAnEvent(data *gherkin.DocString) error {
+func (ct *testCalendar) iMakeASendRequestToStoreAnEvent(data *gherkin.DocString) error {
 	replacer := strings.NewReplacer("\n", "", "\t", "")
 	cleanJson := replacer.Replace(data.Content)
 	event := &models.EventJSON{}
@@ -148,9 +145,9 @@ func (ct *testCalendar) itMatchesTheTheOneWeSubmitted() error {
 	case ct.responseEvent.Note != ct.requestEvent.Note:
 		err = fmt.Errorf("the Note fields don't match: %s and %s", ct.responseEvent.Note, ct.requestEvent.Note)
 		// TODO: Adjust for the time offset which has to be done because of the GRPC server behaviour
-		//case ct.responseEvent.StartTime.Format(time.UnixDate) != ct.requestEvent.StartTime:
+		//case ct.responseEvent.StartTime.Add(-3*time.Hour).Format(time.UnixDate) != ct.requestEvent.StartTime:
 		//	err = fmt.Errorf("StartTime fields don't match: %s and %s", ct.responseEvent.StartTime.Format(time.UnixDate), ct.requestEvent.StartTime)
-		//case ct.responseEvent.EndTime.Format(time.UnixDate) != ct.requestEvent.EndTime:
+		//case ct.responseEvent.EndTime.Add(-3*time.Hour).Format(time.UnixDate) != ct.requestEvent.EndTime:
 		//	err = fmt.Errorf("EndTime fields don't match: %s and %s", ct.responseEvent.EndTime.Format(time.UnixDate), ct.requestEvent.EndTime)
 		break
 	default:
@@ -233,10 +230,10 @@ func (ct *testCalendar) theServerReturnsASuccessMessage() error {
 }
 
 func FeatureContext(s *godog.Suite) {
-	test := testCalendar{}
+	test := &testCalendar{}
 	// Create a new event
 	s.Step(`^everything is ok$`, test.everythingIsOk)
-	s.Step(`^I make a send a request to store an event:$`, test.iMakeASendARequestToStoreAnEvent)
+	s.Step(`^I make a send request to store an event:$`, test.iMakeASendRequestToStoreAnEvent)
 	s.Step(`^I receive an event ID$`, test.iReceiveAnEventID)
 	// Get created event
 	s.Step(`^I have the event ID$`, test.iHaveTheEventID)
@@ -252,20 +249,4 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^I have the event ID$`, test.iHaveTheEventID)
 	s.Step(`^I request the deletion of the created event by its ID$`, test.iRequestTheDeletionOfTheCreatedEventByItsID)
 	s.Step(`^the server returns a success message$`, test.theServerReturnsASuccessMessage)
-}
-
-func TestMain(m *testing.M) {
-	os.Exit(m.Run())
-}
-
-func TestGoDogAPI(t *testing.T) {
-	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
-		FeatureContext(s)
-	}, godog.Options{
-		Format:              "pretty",
-		Paths:               []string{"../../../test/integration/features/calendar"},
-		Randomize:           0,
-		ShowStepDefinitions: false,
-	})
-	assert.Equal(t, 0, status)
 }

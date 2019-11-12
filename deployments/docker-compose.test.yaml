@@ -28,22 +28,15 @@ services:
     container_name: rmq
     ports:
       - "56721:5672"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "rabbitmq", "5672" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       rabbit-net:
         aliases:
           - rabbitmq
-
-  # Notification service
-  notification:
-    container_name: notification
-    build:
-      context: ../.
-      dockerfile: ./deployments/notification/Dockerfile
-    depends_on:
-      - rabbitmq
-    networks:
-      - rabbit-net
-    restart: on-failure
 
   # Watcher service
   watcher:
@@ -81,14 +74,11 @@ services:
   integration_tests:
     build:
       context: ../.
-      dockerfile: ./deployments/integration-tests/Dockerfile
-#    command: ["./deployments/integration-tests/wait-for-postgres.sh", "--", "make", "integration-test"]
-#    command: ["sh","-c","sleep 30", "GO111MODULE=on CGO_ENABLED=0 go", "test", "-v" -timeout=30s ./internal/go-calendar/grpc ./internal/mq/"]
+      dockerfile: ./deployments/integration-test/Dockerfile
     depends_on:
       - postgres
       - go-calendar
       - watcher
-      - notification
       - rabbitmq
     restart: on-failure
     networks:
