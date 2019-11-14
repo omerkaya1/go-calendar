@@ -9,10 +9,14 @@ services:
       - POSTGRES_PASSWORD=calendar
       - POSTGRES_DB=calendar_db
     volumes:
-#      - ../db/data:/var/lib/postgresql/data
       - ../db/db.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "54321:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calendar_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       db-net:
         aliases:
@@ -24,22 +28,15 @@ services:
     container_name: rmq
     ports:
       - "56721:5672"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "rabbitmq", "5672" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       rabbit-net:
         aliases:
           - rabbitmq
-
-  # Notification service
-  notification:
-    container_name: notification
-    build:
-      context: ../.
-      dockerfile: ./deployments/notification/Dockerfile
-    depends_on:
-      - rabbitmq
-    networks:
-      - rabbit-net
-    restart: on-failure
 
   # Watcher service
   watcher:
@@ -72,6 +69,21 @@ services:
         aliases:
           - go-calendar
     restart: on-failure
+
+  # Integration tests
+  integration_tests:
+    build:
+      context: ../.
+      dockerfile: ./deployments/integration-test/Dockerfile
+    depends_on:
+      - postgres
+      - go-calendar
+      - watcher
+      - rabbitmq
+    restart: on-failure
+    networks:
+      - db-net
+      - rabbit-net
 
 # Network definitions
 networks:

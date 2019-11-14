@@ -3,7 +3,7 @@ package config
 import (
 	"path"
 
-	"github.com/omerkaya1/go-calendar/internal/watcher/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
 	"github.com/spf13/viper"
 )
 
@@ -42,7 +42,7 @@ func InitConfig(cfgPath string) (*Config, error) {
 
 	cfgFileExt := path.Ext(cfgPath)
 	if cfgFileExt == "" {
-		return nil, errors.ErrBadConfigFile
+		return nil, errors.ErrCorruptConfigFileExtension
 	}
 	viper.SetConfigType(cfgFileExt[1:])
 

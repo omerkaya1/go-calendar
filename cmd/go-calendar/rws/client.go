@@ -15,6 +15,7 @@ import (
 )
 
 var host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string
+var expired, list bool
 
 var (
 	ClientCmd = &cobra.Command{
@@ -62,10 +63,12 @@ func init() {
 	ClientCmd.PersistentFlags().StringVarP(&port, "port", "p", "7070", "port of the host")
 	ClientCmd.PersistentFlags().StringVarP(&eventID, "id", "i", "", "internal event id")
 	ClientCmd.PersistentFlags().StringVarP(&eventOwner, "owner", "o", "", "owner of the event")
-	ClientCmd.PersistentFlags().StringVarP(&eventName, "event-title", "t", "", "event name")
-	ClientCmd.PersistentFlags().StringVarP(&eventNote, "note", "n", "empty", "additional note related to the event")
-	ClientCmd.PersistentFlags().StringVarP(&startTime, "event-start", "b", "", "starting date and hour of the event")
-	ClientCmd.PersistentFlags().StringVarP(&endTime, "event-end", "e", "", "ending date and hour of the event")
+	ClientCmd.PersistentFlags().StringVarP(&eventName, "title", "t", "", "event name")
+	ClientCmd.PersistentFlags().StringVarP(&eventNote, "note", "n", "", "additional note related to the event")
+	ClientCmd.PersistentFlags().StringVarP(&startTime, "start", "b", "", "starting date and hour of the event")
+	ClientCmd.PersistentFlags().StringVarP(&endTime, "end", "e", "", "ending date and hour of the event")
+	ClientCmd.PersistentFlags().BoolVarP(&expired, "expired", "x", false, "delete expired events for a user")
+	ClientCmd.PersistentFlags().BoolVarP(&list, "list", "l", false, "list all events belonging to a user")
 }
 
 func createCmdFunc(cmd *cobra.Command, args []string) {
@@ -91,7 +94,7 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 
 	req, err := http.NewRequest(
 		http.MethodPost,
-		fmt.Sprintf("http://%s:%s%s%s%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL),
+		fmt.Sprintf("http://%s:%s%s%s%s", host, port, rws.ApiPrefix, rws.ApiVersion, rws.EventURL),
 		bytes.NewReader(body))
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
@@ -110,7 +113,7 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func updateCmdFunc(cmd *cobra.Command, args []string) {
-	if eventID == "" && eventName == "" {
+	if eventID == "" {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
 
@@ -128,7 +131,7 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 
 	req, err := http.NewRequest(
 		http.MethodPut,
-		fmt.Sprintf("http://%s:%s%s%s%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL),
+		fmt.Sprintf("http://%s:%s%s%s%s", host, port, rws.ApiPrefix, rws.ApiVersion, rws.EventURL),
 		bytes.NewReader(body))
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
@@ -147,20 +150,33 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func getCmdFunc(cmd *cobra.Command, args []string) {
-	if eventID == "" && eventName == "" {
+	client := getRWSClient()
+	req := &http.Request{}
+	var err error
+	switch {
+	case eventOwner != "" && eventID != "":
+		req, err = http.NewRequest(
+			http.MethodGet,
+			fmt.Sprintf("http://%s:%s%s%s%s/%s/%s", host, port, rws.ApiPrefix, rws.ApiVersion, rws.EventURL, eventOwner, eventID),
+			nil,
+		)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		break
+	case list && eventOwner != "":
+		req, err = http.NewRequest(
+			http.MethodGet,
+			fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.ApiPrefix, rws.ApiVersion, rws.EventURL, eventOwner),
+			nil,
+		)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		break
+	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-
-	client := getRWSClient()
-
-	req, err := http.NewRequest(
-		http.MethodGet,
-		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, eventID),
-		nil)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
@@ -174,20 +190,31 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func deleteCmdFunc(cmd *cobra.Command, args []string) {
-	if eventID == "" && eventName == "" {
+	client := getRWSClient()
+	req := &http.Request{}
+	var err error
+	switch {
+	case eventOwner != "" && eventID != "":
+		req, err = http.NewRequest(
+			http.MethodDelete,
+			fmt.Sprintf("http://%s:%s%s%s%s/%s/%s", host, port, rws.ApiPrefix, rws.ApiVersion, rws.EventURL, eventOwner, eventID),
+			nil)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		break
+	case expired && eventOwner != "":
+		req, err = http.NewRequest(
+			http.MethodDelete,
+			fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.ApiPrefix, rws.ApiVersion, rws.EventURL, eventOwner),
+			nil)
+		if err != nil {
+			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
+		}
+		break
+	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-
-	client := getRWSClient()
-
-	req, err := http.NewRequest(
-		http.MethodDelete,
-		fmt.Sprintf("http://%s:%s%s%s%s/%s", host, port, rws.RWSApiPrefix, rws.RWSapiVersion, rws.RWSeventURL, eventID),
-		nil)
-	if err != nil {
-		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
-	}
-
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
@@ -201,7 +228,12 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func getRWSClient() *http.Client {
+	transport := &http.Transport{
+		ResponseHeaderTimeout: time.Second * 5,
+		TLSHandshakeTimeout:   time.Second * 5,
+	}
 	return &http.Client{
-		Timeout: time.Second * 60,
+		Timeout:   time.Second * 60,
+		Transport: transport,
 	}
 }

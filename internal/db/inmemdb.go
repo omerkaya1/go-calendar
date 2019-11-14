@@ -86,16 +86,10 @@ func (imes *InMemoryEventStorage) GetUserEvents(ctx context.Context, user string
 	return []models.Event{}, nil
 }
 
-// GetEventByName .
-func (imes *InMemoryEventStorage) GetEventByName(ctx context.Context, name string) (models.Event, error) {
-	log.Println("Implement me!")
-	return models.Event{}, nil
-}
-
 // DeleteAllUserEvents .
-func (imes *InMemoryEventStorage) DeleteAllUserEvents(ctx context.Context, user string) error {
+func (imes *InMemoryEventStorage) DeleteExpiredEvents(ctx context.Context, user string) (int64, error) {
 	log.Println("Implement me!")
-	return nil
+	return 0, nil
 }
 
 func (imes *InMemoryEventStorage) checkEventCollision(event *models.Event) error {

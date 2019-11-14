@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	errors2 "github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
 
 	"github.com/satori/go.uuid"
 )
@@ -30,6 +30,6 @@ func ValidateID(id string) (uuid.UUID, error) {
 
 func ValidateTime(start, finish *time.Time) {
 	if start.After(*finish) {
-		log.Fatalf("%s: %s", errors2.ErrValidationPrefix, errors2.ErrEventTimeViolation)
+		log.Fatalf("%s: %s", errors.ErrValidationPrefix, errors.ErrEventTimeViolation)
 	}
 }

@@ -15,7 +15,7 @@
     "port": "5672",
     "user": "guest",
     "password": "guest",
-    "interval": "10s",
+    "interval": "5s",
     "name": "events"
   }
 }

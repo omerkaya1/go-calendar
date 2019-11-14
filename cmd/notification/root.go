@@ -11,7 +11,6 @@ import (
 
 var configFile string
 
-// RootCmd is the main entry point to the programme
 var rootCmd = &cobra.Command{
 	Use:     "notification",
 	Short:   "simple notification service that queries RabbitMQ for messages that belong to a particular message queue",

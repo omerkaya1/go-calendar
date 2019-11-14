@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RootCmd only starts the app according to selected child command
 var rootCmd = &cobra.Command{
 	Use:   "go-calendar",
 	Short: "simple calendar designed as a microservice",

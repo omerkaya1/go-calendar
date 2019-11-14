@@ -7,8 +7,7 @@ func (ne NotificationError) Error() string {
 }
 
 var (
-	ErrBadConfigFile         = NotificationError("the correct configuration file was not specified")
-	ErrBadQueueConfiguration = NotificationError("malformed or uninitialised message queue configuration")
+	ErrBadConfigFile = NotificationError("the correct configuration file was not specified")
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/services/events"
 
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
-	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/go-calendar-api"
+	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/api"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
