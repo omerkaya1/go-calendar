@@ -39,16 +39,16 @@ Path to the configuration file.
 1) Added Dockerfile and docker-compose files for the project. `DONE`
 
 ### Sixth iteration (MtA vs. MsA implementation for the the CS):
-##### Status: `In Progress`
+##### Status: `DONE`
 1) Lorem ipsum
 2) Lorem ipsum
 
 ### Seventh iteration (Integration tests and Unit tests for the the CS):
-##### Status: `Backlog`
+##### Status: `DONE`
 1) Lorem ipsum
 2) Lorem ipsum
 
 ### Eighth iteration (Prometheus monitoring implementation for the the CS):
-##### Status: `Backlog`
+##### Status: `In progress`
 1) Lorem ipsum
 2) Lorem ipsum

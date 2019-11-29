@@ -17,5 +17,9 @@
     "password": "guest",
     "interval": "5s",
     "name": "events"
+  },
+  "prometheus": {
+    "host": "go-calendar",
+    "port": "8888"
   }
 }

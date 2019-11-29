@@ -11,3 +11,7 @@ events (at least it should do so).
 
 ### config (-c)
 Path to the configuration file.
+
+## Description
+
+Consult [docs](./docs) folder for further reference.
