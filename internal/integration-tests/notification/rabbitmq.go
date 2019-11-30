@@ -41,7 +41,7 @@ func _setupNotification() *testNotification {
 		log.Fatal(err)
 	}
 
-	rmq, err := mq.NewRabbitMQService(conf, mdb)
+	rmq, err := mq.NewRabbitMQService(conf, mdb, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -38,7 +38,7 @@ func startNotificationService(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s:%s", errors.ErrDBPrefix, err)
 	}
 
-	messageQueue, err := mq.NewRabbitMQService(conf, esp)
+	messageQueue, err := mq.NewRabbitMQService(conf, esp, nil)
 	if err != nil {
 		log.Fatalf("%s:%s", errors.ErrMQPrefix, err)
 	}

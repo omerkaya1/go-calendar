@@ -36,6 +36,8 @@ services:
       dockerfile: ./deployments/notification/Dockerfile
     depends_on:
       - rabbitmq
+    ports:
+      - 8989:8989
     networks:
       - rabbit-net
     restart: on-failure
@@ -65,7 +67,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "7070:7070"
+      - 7070:7070
     networks:
       db-net:
         aliases:

@@ -106,3 +106,10 @@ pg_stat_user_tables_seq_tup_read{datname="calendar_db",relname="events",schemana
 # TYPE pg_stat_user_tables_n_tup_upd counter
 pg_stat_user_tables_n_tup_upd{datname="calendar_db",relname="events",schemaname="public",server="postgres:5432"}
 ```
+
+### Notification
+##### Total number of messages sent by the MQ service
+```yaml
+# TYPE rabbit_mq_sent_messages counter
+rabbit_mq_sent_messages
+```
