@@ -76,8 +76,7 @@ services:
     container_name: prometheus
     image: prom/prometheus:v2.13.1
     volumes:
-      - ../configs/prometheus/:/etc/prometheus/
-      - ./var/prometheus:/prometheus
+      - ../configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -87,13 +86,28 @@ services:
       - 9090:9090
     depends_on:
       - go-calendar
-#      - watcher
-#      - notification
+      - notification
+      - postgresql-exporter
     networks:
       - db-net
       - rabbit-net
     restart: on-failure
 
+  postgresql-exporter:
+    container_name: psql-exporter
+    image: wrouesnel/postgres_exporter:v0.8.0
+    ports:
+      - 9187:9187
+    volumes:
+      - ../configs/prometheus/queries.yml:/etc/prometheus/queries.yml
+    networks:
+      - db-net
+    depends_on:
+      - postgres
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:5432/calendar_db?sslmode=disable&user=calendar_user&password=calendar
+      - PG_EXPORTER_DISABLE_DEFAULT_METRICS=true
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/prometheus/queries.yml
 
 # Network definitions
 networks:
