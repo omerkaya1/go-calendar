@@ -9,11 +9,12 @@ import (
 
 // Config .
 type Config struct {
-	Host  string    `json:"host" yaml:"host" toml:"host"`
-	Port  string    `json:"port" yaml:"port" toml:"port"`
-	Level int       `json:"level" yaml:"level" toml:"level"`
-	DB    DBConf    `json:"db" yaml:"db" toml:"db"`
-	Queue QueueConf `json:"queue" yaml:"queue" toml:"queue"`
+	Host       string    `json:"host" yaml:"host" toml:"host"`
+	Port       string    `json:"port" yaml:"port" toml:"port"`
+	Level      int       `json:"level" yaml:"level" toml:"level"`
+	DB         DBConf    `json:"db" yaml:"db" toml:"db"`
+	Queue      QueueConf `json:"queue" yaml:"queue" toml:"queue"`
+	Prometheus PromConf  `json:"prometheus" yaml:"prometheus" toml:"prometheus"`
 }
 
 // DBConf .
@@ -34,6 +35,12 @@ type QueueConf struct {
 	Password string `json:"password" yaml:"password" toml:"password"`
 	Interval string `json:"interval" yaml:"interval" toml:"interval"`
 	Name     string `json:"name" yaml:"name" toml:"name"`
+}
+
+// PromConf .
+type PromConf struct {
+	Host string `json:"host" yaml:"host" toml:"host"`
+	Port string `json:"port" yaml:"port" toml:"port"`
 }
 
 // InitConf .

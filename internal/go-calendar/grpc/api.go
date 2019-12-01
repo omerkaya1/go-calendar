@@ -12,9 +12,6 @@ import (
 
 // CreateEvent handles GRPC requests to create events
 func (s *GoCalendarServer) CreateEvent(ctx context.Context, req *gca.CreateEventRequest) (*gca.ResponseWithEventID, error) {
-	// TODO: create a more elegant way to handle the offset
-	req.StartTime.Seconds += 60 * 60 * 3
-	req.EndTime.Seconds += 60 * 60 * 3
 	// ProtoEvent to Event wrapper
 	event, err := parsers.MapProtoRequestEventToEvent(req)
 	if err != nil {
@@ -73,9 +70,6 @@ func (s *GoCalendarServer) GetUserEvents(ctx context.Context, req *gca.RequestUs
 
 // UpdateEvent handles GRPC requests to update existing events
 func (s *GoCalendarServer) UpdateEvent(ctx context.Context, req *gca.Event) (*gca.ResponseWithEventID, error) {
-	// TODO: create a more elegant way to handle the offset
-	req.StartTime.Seconds += 60 * 60 * 3
-	req.EndTime.Seconds += 60 * 60 * 3
 	// ProtoEvent to Event wrapper
 	event, err := parsers.MapProtoEventToOldEvent(req)
 	if err != nil {

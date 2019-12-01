@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"github.com/omerkaya1/go-calendar/internal/prometheus"
 	"log"
 
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/services/events"
@@ -62,8 +63,14 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s: dbFromConfig failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
 
+	// Prometheus metrics start
+	monitor, err := prometheus.NewMonitor(cfg.Prometheus)
+	if err != nil {
+		log.Fatalf("%s: Monitor init failed: %s", errors.ErrServiceCmdPrefix, err)
+	}
+
 	// Init GRPC server
-	srv := grpc.NewServer(cfg, logger, esp)
+	srv := grpc.NewServer(cfg, logger, esp, monitor)
 	srv.Run()
 }
 

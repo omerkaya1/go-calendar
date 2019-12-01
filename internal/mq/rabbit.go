@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"os"
 	"os/signal"
@@ -16,21 +17,24 @@ import (
 
 // EventMQProducer .
 type RabbitMQService struct {
-	Conn *amqp.Connection
-	db   interfaces.EventStorageProcessor
-	conf *config.Config
+	Conn  *amqp.Connection
+	db    interfaces.EventStorageProcessor
+	conf  *config.Config
+	count prometheus.Counter
 }
 
 // NewEventMQProducer .
-func NewRabbitMQService(conf *config.Config, db interfaces.EventStorageProcessor) (*RabbitMQService, error) {
+func NewRabbitMQService(conf *config.Config, db interfaces.EventStorageProcessor, mc prometheus.Counter) (*RabbitMQService, error) {
 	if conf.Queue.Host == "" || conf.Queue.Port == "" || conf.Queue.User == "" || conf.Queue.Password == "" || conf.Queue.Name == "" {
 		return nil, errors.ErrBadQueueConfiguration
 	}
+
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", conf.Queue.User, conf.Queue.Password, conf.Queue.Host, conf.Queue.Port))
 	if err != nil {
 		return nil, err
 	}
-	return &RabbitMQService{Conn: conn, conf: conf, db: db}, nil
+
+	return &RabbitMQService{Conn: conn, conf: conf, db: db, count: mc}, nil
 }
 
 // ProduceMessages .
@@ -147,6 +151,7 @@ MQ:
 				break MQ
 			}
 			log.Println(string(d.Body))
+			rms.count.Inc()
 		}
 	}
 	return nil

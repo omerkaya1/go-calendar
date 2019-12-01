@@ -5,5 +5,6 @@ vendor
 bin/go-calendar
 bin
 db/data
-configs/config.json
 configs/config.toml
+configs/config.yml
+configs/prometheus/prom.yml

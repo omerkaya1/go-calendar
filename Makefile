@@ -102,6 +102,7 @@ clean: ## Remove temporary files
 	go clean $(CURDIR)/cmd/go-calendar
 	go clean $(CURDIR)/cmd/notification
 	go clean $(CURDIR)/cmd/watcher
+	go clean $(CURDIR)/cmd/integration-test
 	rm -rf $(BUILD)
 	rm -rf coverage.txt
 
