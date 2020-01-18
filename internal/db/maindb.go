@@ -22,7 +22,8 @@ func NewMainEventStorage(cfg config.DBConf) (*MainEventStorage, error) {
 	if cfg.Name == "" || cfg.User == "" || cfg.SSL == "" || cfg.Password == "" {
 		return nil, errors.ErrBadDBConfiguration
 	}
-	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.Password, cfg.User, cfg.Name, cfg.SSL)
+	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.Password, cfg.User, cfg.Name, cfg.SSL)
 	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
 		return nil, err
@@ -109,7 +110,7 @@ func (edb *MainEventStorage) GetUpcomingEvents(ctx context.Context) ([]models.Ev
 	for rows.Next() {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return eventList, ctx.Err()
 		default:
 			if err := rows.StructScan(&e); err != nil {
 				return eventList, err
@@ -137,7 +138,7 @@ func (edb *MainEventStorage) GetUserEvents(ctx context.Context, user string) ([]
 	for rows.Next() {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return eventList, ctx.Err()
 		default:
 			if err := rows.StructScan(&e); err != nil {
 				return eventList, err

@@ -13,7 +13,7 @@ COPY --from=dependency-builder /opt/go-calendar .
 RUN CGO_ENABLED=0 go build -o ./bin/go-calendar ./cmd/go-calendar
 
 # The third stage: copy the go-calendar binary to another container
-FROM alpine:3.9
+FROM scratch
 LABEL name="go-calendar" maintainer="o.kaya" version="0.1"
 WORKDIR /opt/go-calendar
 COPY --from=app-builder /opt/go-calendar/bin/go-calendar ./bin/
