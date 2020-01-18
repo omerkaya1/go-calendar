@@ -13,7 +13,7 @@ COPY --from=meta-builder /opt/notification .
 RUN CGO_ENABLED=0 go build -o ./bin/notification ./cmd/notification
 
 # The third stage: copy the notification binary to another container
-FROM alpine:3.9
+FROM scratch
 LABEL name="notification" maintainer="o.kaya" version="0.1"
 WORKDIR /opt/notification
 COPY --from=app-builder /opt/notification/bin/notification ./bin/

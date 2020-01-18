@@ -13,7 +13,7 @@ COPY --from=dependency-builder /opt/watcher .
 RUN CGO_ENABLED=0 go build -o ./bin/watcher ./cmd/watcher
 
 # The third stage: copy the watcher binary to another container
-FROM alpine:3.9
+FROM scratch
 LABEL name="watcher" maintainer="o.kaya" version="0.1"
 WORKDIR /opt/watcher
 COPY --from=app-builder /opt/watcher/bin/watcher ./bin/

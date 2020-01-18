@@ -13,7 +13,7 @@ COPY --from=dependency-builder /opt/integration-test .
 RUN CGO_ENABLED=0 go build -o ./bin/integration-test ./cmd/integration-test
 
 # The third stage: copy the integration-test binary to another container
-FROM alpine:3.9
+FROM scratch
 LABEL name="integration-test" maintainer="o.kaya" version="0.1"
 WORKDIR /opt/integration-test
 COPY --from=app-builder /opt/integration-test/bin/integration-test ./bin/

@@ -1,5 +1,6 @@
 BUILD= $(CURDIR)/bin
-VERSION= $(shell git rev-list HEAD --count)
+VERSION= v$(shell git rev-list HEAD --count)
+ARCH= $(shell uname -m)
 $(shell mkdir -p $(BUILD))
 export GO111MODULE=on
 export GOPATH=$(go env GOPATH)
@@ -18,7 +19,7 @@ mod: ## Runs mod
 	go mod tidy
 
 .PHONY: test
-test: setup ## Runs all the tests
+test: setup ## Runs all unit tests
 	echo 'mode: atomic' > coverage.txt && go test -covermode=atomic -coverprofile=coverage.txt -v -race -timeout=30s ./...
 
 .PHONY: integration-test
@@ -58,27 +59,27 @@ build-all: build-gcs build-notification build-watcher ## Builds all binaries of 
 
 .PHONY: dockerbuild-gcs
 dockerbuild-gcs: ## Builds a docker image with the go-calendar project
-	docker build -t omer513/go-calendar:0.${VERSION} -f ./deployments/go-calendar/Dockerfile .
+	docker build -t omer513/go-calendar-${ARCH}:${VERSION} -f ./deployments/go-calendar/Dockerfile .
 
 .PHONY: dockerpush-gcs
 dockerpush-gcs: dockerbuild-gcs ## Publishes the docker image to the registry
-	docker push omer513/go-calendar:0.${VERSION}
+	docker push omer513/go-calendar-${ARCH}:${VERSION}
 
 .PHONY: dockerbuild-notification
 dockerbuild-notification: ## Builds a docker image with the notification project
-	docker build -t omer513/notification:0.${VERSION} -f ./deployments/notification/Dockerfile .
+	docker build -t omer513/notification-${ARCH}:${VERSION} -f ./deployments/notification/Dockerfile .
 
 .PHONY: dockerpush-notification
 dockerpush-notification: dockerbuild-notification ## Publishes the docker image to the registry
-	docker push omer513/notification:0.${VERSION}
+	docker push omer513/notification-${ARCH}:${VERSION}
 
 .PHONY: dockerbuild-watcher
 dockerbuild-watcher: ## Builds a docker image with a project
-	docker build -t omer513/watcher:0.${VERSION} -f ./deployments/watcher/Dockerfile .
+	docker build -t omer513/watcher-${ARCH}:${VERSION} -f ./deployments/watcher/Dockerfile .
 
 .PHONY: dockerpush-watcher
 dockerpush-watcher: dockerbuild-watcher ## Publishes the docker image to the registry
-	docker push omer513/watcher:0.${VERSION}
+	docker push omer513/watcher-${ARCH}:${VERSION}
 
 .PHONY: docker-compose-up
 docker-compose-up: ## Runs docker-compose command to kick-start the infrastructure
@@ -89,7 +90,7 @@ docker-compose-down: ## Runs docker-compose command to remove the turn down the 
 	docker-compose -f ./deployments/docker-compose.yaml down -v
 
 .PHONY: integration
-integration: ##
+integration: ## Run integration tests
 	docker-compose -f ./deployments/docker-compose.test.yaml up --build -d;\
 	test_status_code=0 ;\
 	docker-compose -f ./deployments/docker-compose.test.yaml run integration_tests ./bin/integration-test || test_status_code=$$? ;\
@@ -107,7 +108,7 @@ clean: ## Remove temporary files
 	rm -rf coverage.txt
 
 .PHONY: help
-help: ## Print this help message
+help: ## Print this help message and exit
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .DEFAULT_GOAL := build-gcs
