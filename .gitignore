@@ -8,3 +8,4 @@ db/data
 configs/config.toml
 configs/config.yml
 configs/prometheus/prom.yml
+static/node_modules

@@ -46,6 +46,10 @@ gen: ## Triggers the protobuf code generation
 build-gcs: gen ## Builds the go-calendar project
 	go build -o $(BUILD)/go-calendar $(CURDIR)/cmd/go-calendar
 
+.PHONY: build-gcs-ui
+build-gcs-ui:
+	cd $(CURDIR)/static && ng build --prod && cd $(CURDIR)/..
+
 .PHONY: build-notification
 build-notification: ## Builds the notification project
 	go build -o $(BUILD)/notification $(CURDIR)/cmd/notification

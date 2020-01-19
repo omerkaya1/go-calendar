@@ -34,6 +34,8 @@ func (s *Server) Run() {
 	r.HandleFunc(path.Join(ApiPrefix, ApiVersion, EventURL, "/{user:[-A-Z0-9a-z]+}", "/{id:[-A-Z0-9a-z]+}"), s.DeleteEvent).Methods(http.MethodDelete)
 	r.HandleFunc(path.Join(ApiPrefix, ApiVersion, EventURL, "/{user}"), s.DeleteExpiredEvents).Methods(http.MethodDelete)
 
+	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/dist/."))))
+
 	s.Logger.Sugar().Infof("Server initialised on address: %s:%s", s.Cfg.Host, s.Cfg.Port)
 	s.Logger.Sugar().Errorf("%s", http.ListenAndServe(s.Cfg.Host+":"+s.Cfg.Port, r))
 }

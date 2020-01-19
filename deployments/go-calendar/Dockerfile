@@ -5,7 +5,7 @@ WORKDIR /opt/${APP_NAME}
 COPY . .
 RUN go mod download
 
-# The second stage:
+# The second stage: build the backend
 FROM dependency-builder as app-builder
 ENV APP_NAME go-calendar
 WORKDIR /opt/${APP_NAME}
@@ -17,6 +17,7 @@ FROM scratch
 LABEL name="go-calendar" maintainer="o.kaya" version="0.1"
 WORKDIR /opt/go-calendar
 COPY --from=app-builder /opt/go-calendar/bin/go-calendar ./bin/
+COPY --from=app-builder /opt/go-calendar/static/dist ./static/dist
 COPY --from=app-builder /opt/go-calendar/configs/config.json ./configs/
 EXPOSE 7070
-CMD ["./bin/go-calendar", "grpc-server", "-c", "./configs/config.json"]
+CMD ["./bin/go-calendar", "rws-server", "-c", "./configs/config.json"]
