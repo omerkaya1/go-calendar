@@ -190,7 +190,6 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 		start, _ := parsers.ParseProtoToTime(e.StartTime)
 		end, _ := parsers.ParseProtoToTime(e.EndTime)
 		log.Printf("%s: %s, starts: %s, ends: %s\n", e.UserName, e.EventName, start.String(), end.String())
-		break
 	case list && eventOwner != "":
 		req := &gca.RequestUser{
 			UserName: eventOwner,
@@ -207,7 +206,6 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 			end, _ := parsers.ParseProtoToTime(e.EndTime)
 			log.Printf("%s: %s, starts: %s, ends: %s\n", e.UserName, e.EventName, start.String(), end.String())
 		}
-		break
 	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
@@ -232,7 +230,6 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
 		}
 		log.Printf("%v\n", resp.GetResponse())
-		break
 	case expired && eventOwner != "":
 		req := &gca.RequestUser{
 			UserName: eventOwner,
@@ -245,7 +242,6 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, resp.GetError())
 		}
 		log.Printf("%v\n", resp.GetResponse())
-		break
 	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}

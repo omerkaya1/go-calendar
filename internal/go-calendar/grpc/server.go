@@ -54,7 +54,7 @@ func (s *GoCalendarServer) Run() {
 
 	// Listen for the OS signals
 	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, syscall.SIGINT, syscall.SIGKILL, syscall.SIGSTOP)
+	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
 	// Gracefully shut down the server should the proper os signal arrive
 	go func() {
 		for range exit {

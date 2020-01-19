@@ -163,7 +163,6 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 		}
-		break
 	case list && eventOwner != "":
 		req, err = http.NewRequest(
 			http.MethodGet,
@@ -173,7 +172,6 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 		}
-		break
 	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
@@ -202,7 +200,6 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 		}
-		break
 	case expired && eventOwner != "":
 		req, err = http.NewRequest(
 			http.MethodDelete,
@@ -211,7 +208,6 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 		}
-		break
 	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
