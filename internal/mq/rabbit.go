@@ -75,30 +75,30 @@ MQ:
 			log.Println("Exit the programme.")
 			break MQ
 		case <-tickTockBoom.C:
-			ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			events, err := rms.db.GetUpcomingEvents(ctx)
 			if err != nil {
 				log.Printf("%s: %s", errors.ErrMQPrefix, err)
+				cancel()
 				break
 			}
-			if events != nil {
-				for _, e := range events {
-					body := fmt.Sprintf("User: %s has '%s' from %s until %s",
-						e.UserName, e.EventName, e.StartTime, e.EndTime)
-					err = ch.Publish(
-						"",
-						q.Name,
-						false,
-						false,
-						amqp.Publishing{
-							ContentType: "application/json",
-							Body:        []byte(body),
-						})
-					if err != nil {
-						log.Printf("%s: %s", errors.ErrMQPrefix, err)
-					}
+			for _, e := range events {
+				body := fmt.Sprintf("User: %s has '%s' from %s until %s",
+					e.UserName, e.EventName, e.StartTime, e.EndTime)
+				err = ch.Publish(
+					"",
+					q.Name,
+					false,
+					false,
+					amqp.Publishing{
+						ContentType: "application/json",
+						Body:        []byte(body),
+					})
+				if err != nil {
+					log.Printf("%s: %s", errors.ErrMQPrefix, err)
 				}
 			}
+			cancel()
 		}
 	}
 	return nil

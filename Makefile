@@ -19,11 +19,11 @@ mod: ## Runs mod
 	go mod tidy
 
 .PHONY: test
-test: setup ## Runs all unit tests
+test: ## Runs all unit tests
 	echo 'mode: atomic' > coverage.txt && go test -covermode=atomic -coverprofile=coverage.txt -v -race -timeout=30s ./...
 
 .PHONY: integration-test
-integration-test: setup ## Runs integration tests
+integration-test: ## Runs integration tests
 	go test -v -timeout=30s ./internal/go-calendar/grpc ./internal/mq/
 
 .PHONY: cover
@@ -31,12 +31,12 @@ cover: test ## Runs all the tests and opens the coverage report
 	go tool cover -html=coverage.txt
 
 .PHONY: fmt
-fmt: setup ## Runs goimports on all go files
+fmt: ## Runs goimports on all go files
 	find . -name '*.go' -not -wholename './vendor/*' | while read -r file; do goimports -w "$$file"; done
 
 .PHONY: lint
-lint: setup ## Runs all the linters
-	golint ./internal ./cmd ./configs ./log ./
+lint: ## Runs all the linters
+	docker run --rm -v $(CURDIR):/app -w /app golangci/golangci-lint:v1.22.2 golangci-lint run -v -c .golangci.yml
 
 .PHONY: gen
 gen: ## Triggers the protobuf code generation
