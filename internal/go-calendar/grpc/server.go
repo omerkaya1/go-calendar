@@ -1,31 +1,33 @@
 package grpc
 
 import (
-	"github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/services/events"
-	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/api"
-	"github.com/omerkaya1/go-calendar/internal/prometheus"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
+	gca "github.com/omerkaya1/go-calendar/internal/go-calendar/grpc/api"
+	"github.com/omerkaya1/go-calendar/internal/prometheus"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 type GoCalendarServer struct {
 	Cfg          *config.Config
 	Logger       *zap.Logger
-	EventService *events.EventService
+	EventStorage interfaces.EventStorageProcessor
 	Monitoring   *prometheus.Monitor
 }
 
-func NewServer(cfg *config.Config, log *zap.Logger, es *events.EventService, m *prometheus.Monitor) *GoCalendarServer {
+func NewServer(
+	cfg *config.Config, log *zap.Logger, es interfaces.EventStorageProcessor, m *prometheus.Monitor) *GoCalendarServer {
 	return &GoCalendarServer{
 		Cfg:          cfg,
 		Logger:       log,
-		EventService: es,
+		EventStorage: es,
 		Monitoring:   m,
 	}
 }

@@ -4,24 +4,23 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/services/events"
-
 	"github.com/gorilla/mux"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
 	"go.uber.org/zap"
 )
 
 type Server struct {
 	Cfg          *config.Config
 	Logger       *zap.Logger
-	EventService *events.EventService
+	EventStorage interfaces.EventStorageProcessor
 }
 
-func NewServer(cfg *config.Config, log *zap.Logger, es *events.EventService) *Server {
+func NewServer(cfg *config.Config, log *zap.Logger, es interfaces.EventStorageProcessor) *Server {
 	return &Server{
 		Cfg:          cfg,
 		Logger:       log,
-		EventService: es,
+		EventStorage: es,
 	}
 }
 

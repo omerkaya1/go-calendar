@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/models"
 
 	"github.com/satori/go.uuid"
@@ -18,7 +19,7 @@ type InMemoryEventStorage struct {
 }
 
 // NewInMemoryEventStorage returns a new InMemoryEventStorage object.
-func NewInMemoryEventStorage() (*InMemoryEventStorage, error) {
+func NewInMemoryEventStorage() (interfaces.EventStorageProcessor, error) {
 	return &InMemoryEventStorage{db: make(map[uuid.UUID]models.Event), m: &sync.RWMutex{}}, nil
 }
 

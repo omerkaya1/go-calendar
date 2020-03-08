@@ -15,7 +15,15 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// MessageQueue
+type MessageQueue interface {
+	ProduceMessages() error
+	EmmitMessages() error
+}
+
 // EventMQProducer .
+// TODO: in order to communicate with the db we only need a specific set of methods strictly limited to reading!
+// 		 Therefore, we should define a smaller interface to both satisfy our needs and comply with the
 type RabbitMQService struct {
 	Conn  *amqp.Connection
 	db    interfaces.EventStorageProcessor
@@ -24,7 +32,7 @@ type RabbitMQService struct {
 }
 
 // NewEventMQProducer .
-func NewRabbitMQService(conf *config.Config, db interfaces.EventStorageProcessor, mc prometheus.Counter) (*RabbitMQService, error) {
+func NewRabbitMQService(conf *config.Config, db interfaces.EventStorageProcessor, mc prometheus.Counter) (MessageQueue, error) {
 	if conf.Queue.Host == "" || conf.Queue.Port == "" || conf.Queue.User == "" || conf.Queue.Password == "" || conf.Queue.Name == "" {
 		return nil, errors.ErrBadQueueConfiguration
 	}
@@ -156,3 +164,5 @@ MQ:
 	}
 	return nil
 }
+
+func (rms *RabbitMQService)

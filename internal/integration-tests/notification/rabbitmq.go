@@ -16,12 +16,12 @@ import (
 )
 
 type testNotification struct {
-	n            *mq.RabbitMQService
+	n            mq.MessageQueue
 	eventToStore *models.Event
 	eventID      uuid.UUID
 }
 
-func _setupNotification() *testNotification {
+func setupNotification() *testNotification {
 	var err error
 	conf, err := config.InitConfig("./configs/config.json")
 	if err != nil {
@@ -119,7 +119,7 @@ func (tn *testNotification) theNotificationServiceReturnsStoredEventAsAMessage()
 }
 
 func FeatureContext(s *godog.Suite) {
-	test := _setupNotification()
+	test := setupNotification()
 	s.Step(`^everything is set up$`, test.everythingIsSetUp)
 	s.Step(`^an event is stored in the DB$`, test.anEventIsStoredInTheDB)
 	s.Step(`^the notification service is started$`, test.theNotificationServiceIsStarted)

@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/models"
 	"github.com/satori/go.uuid"
 )
@@ -18,7 +19,7 @@ type MainEventStorage struct {
 }
 
 // NewMainEventStorage returns new MainEventStorage object to the callee
-func NewMainEventStorage(cfg config.DBConf) (*MainEventStorage, error) {
+func NewMainEventStorage(cfg config.DBConf) (interfaces.EventStorageProcessor, error) {
 	if cfg.Name == "" || cfg.User == "" || cfg.SSL == "" || cfg.Password == "" {
 		return nil, errors.ErrBadDBConfiguration
 	}

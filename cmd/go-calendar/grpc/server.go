@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
 	"github.com/omerkaya1/go-calendar/internal/prometheus"
 	"log"
 
@@ -74,11 +75,11 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	srv.Run()
 }
 
-func dbFromConfig(dbConfig config.DBConf) (*events.EventService, error) {
+func dbFromConfig(dbConfig config.DBConf) (interfaces.EventStorageProcessor, error) {
 	if dbConfig.Name == "test" {
 		inMemoryDB, err := db.NewInMemoryEventStorage()
-		return &events.EventService{Processor: inMemoryDB}, err
+		return inMemoryDB, err
 	}
 	mainDB, err := db.NewMainEventStorage(dbConfig)
-	return &events.EventService{Processor: mainDB}, err
+	return mainDB, err
 }
