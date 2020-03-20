@@ -2,6 +2,7 @@ package rws
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,16 +15,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string
-var expired, list bool
+var (
+	host, port, eventName, eventID, eventNote, eventOwner, startTime, endTime string
+	expired, list                                                             bool
+)
 
 var (
+	// ClientCmd .
 	ClientCmd = &cobra.Command{
 		Use:     "rws-client",
 		Short:   "Run RESTful Web Service client",
 		Example: "  go-calendar rws-client create -h",
 	}
-
+	// CreateActionCmd .
 	CreateActionCmd = &cobra.Command{
 		Use:   "create",
 		Short: "Create calendar event",
@@ -31,14 +35,14 @@ var (
 		Example: `  go-calendar rws-client create -t "Saturday party" -n "Buy soda and apples!" -o "John Doe" 
 		-b "Tue Oct 1 18:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
 	}
-
+	// GetActionCmd .
 	GetActionCmd = &cobra.Command{
 		Use:     "get",
 		Short:   "Get calendar event",
 		Run:     getCmdFunc,
 		Example: "  go-calendar rws-client get -i sdkjf-8783-sdfs-341\n  go-calendar rws-client -o \"John Doe\"",
 	}
-
+	// UpdateActionCmd .
 	UpdateActionCmd = &cobra.Command{
 		Use:   "update",
 		Short: "Update calendar event",
@@ -46,7 +50,7 @@ var (
 		Example: `  go-calendar rws-client update -i sdkjf-8783-sdfs-341 -t "Saturday party(postponed)" -o "John Doe" 
 -b "Tue Oct 1 19:00:00 MSK 2019" -e "Tue Oct 1 23:30:00 MSK 2019"`,
 	}
-
+	// DeleteActionCmd .
 	DeleteActionCmd = &cobra.Command{
 		Use:   "delete",
 		Short: "Delete calendar event",
@@ -99,8 +103,11 @@ func createCmdFunc(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
-
-	resp, err := client.Do(req)
+	// Create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	// Send a request
+	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
@@ -136,8 +143,11 @@ func updateCmdFunc(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
-
-	resp, err := client.Do(req)
+	// Create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	// Send a request
+	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
@@ -177,7 +187,11 @@ func getCmdFunc(cmd *cobra.Command, args []string) {
 	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-	resp, err := client.Do(req)
+	// Create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	// Send a request
+	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}
@@ -215,7 +229,11 @@ func deleteCmdFunc(cmd *cobra.Command, args []string) {
 	default:
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, errors.ErrUnsetFlags)
 	}
-	resp, err := client.Do(req)
+	// Create context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	// Send a request
+	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrClientCmdPrefix, err)
 	}

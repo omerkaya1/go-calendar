@@ -3,11 +3,10 @@ package mq
 import (
 	"context"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
 	"log"
-	"os"
-	"os/signal"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
@@ -15,29 +14,29 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// MessageQueue
+// MessageQueue declares a general interface to operate message queues
 type MessageQueue interface {
-	ProduceMessages() error
-	EmmitMessages() error
+	ProduceMessages(context.Context) error
+	EmmitMessages(context.Context) error
 }
 
-// EventMQProducer .
+// RabbitMQService .
 // TODO: in order to communicate with the db we only need a specific set of methods strictly limited to reading!
 // 		 Therefore, we should define a smaller interface to both satisfy our needs and comply with the
 type RabbitMQService struct {
 	Conn  *amqp.Connection
 	db    interfaces.EventStorageProcessor
-	conf  *config.Config
+	conf  config.QueueConf
 	count prometheus.Counter
 }
 
-// NewEventMQProducer .
-func NewRabbitMQService(conf *config.Config, db interfaces.EventStorageProcessor, mc prometheus.Counter) (MessageQueue, error) {
-	if conf.Queue.Host == "" || conf.Queue.Port == "" || conf.Queue.User == "" || conf.Queue.Password == "" || conf.Queue.Name == "" {
+// NewRabbitMQService returns a new instance of MessageQueue interface
+func NewRabbitMQService(conf config.QueueConf, db interfaces.EventStorageProcessor, mc prometheus.Counter) (MessageQueue, error) {
+	if !conf.Verify() {
 		return nil, errors.ErrBadQueueConfiguration
 	}
 
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", conf.Queue.User, conf.Queue.Password, conf.Queue.Host, conf.Queue.Port))
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", conf.User, conf.Password, conf.Host, conf.Port))
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +44,14 @@ func NewRabbitMQService(conf *config.Config, db interfaces.EventStorageProcessor
 	return &RabbitMQService{Conn: conn, conf: conf, db: db, count: mc}, nil
 }
 
-// ProduceMessages .
-func (rms *RabbitMQService) ProduceMessages() error {
+// ProduceMessages queries the app's DB for upcoming events and enqueues them
+func (rms *RabbitMQService) ProduceMessages(ctx context.Context) error {
 	ch, err := rms.Conn.Channel()
 	if err != nil {
 		return err
 	}
 	q, err := ch.QueueDeclare(
-		rms.conf.Queue.Name,
+		rms.conf.Name,
 		false,
 		false,
 		false,
@@ -63,24 +62,19 @@ func (rms *RabbitMQService) ProduceMessages() error {
 		return err
 	}
 
-	interval, err := time.ParseDuration(rms.conf.Queue.Interval)
+	interval, err := time.ParseDuration(rms.conf.Interval)
 	if err != nil {
 		return err
 	}
-
-	// Handle interrupt signal
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, os.Interrupt)
 	// Create a ticker to trigger the the scan process and do the DB query
 	tickTockBoom := time.NewTicker(interval)
 
 MQ:
 	for {
 		select {
-		case <-stopChan:
+		case <-ctx.Done():
 			ch.Close()
 			rms.Conn.Close()
-			log.Println("Exit the programme.")
 			break MQ
 		case <-tickTockBoom.C:
 			ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
@@ -112,14 +106,14 @@ MQ:
 	return nil
 }
 
-// EmmitMessages .
-func (rms *RabbitMQService) EmmitMessages() error {
+// EmmitMessages emits received messages to the stdout
+func (rms *RabbitMQService) EmmitMessages(ctx context.Context) error {
 	ch, err := rms.Conn.Channel()
 	if err != nil {
 		return err
 	}
 	q, err := ch.QueueDeclare(
-		"events",
+		rms.conf.Name,
 		false,
 		false,
 		false,
@@ -141,16 +135,11 @@ func (rms *RabbitMQService) EmmitMessages() error {
 	if err != nil {
 		return err
 	}
-
-	// Handle interrupt
-	exitChan := make(chan os.Signal, 1)
-	signal.Notify(exitChan, os.Interrupt)
-
+	// Main work cycle
 MQ:
 	for {
 		select {
-		case <-exitChan:
-			log.Println("Exit the programme.")
+		case <-ctx.Done():
 			ch.Close()
 			rms.Conn.Close()
 			break MQ
@@ -164,5 +153,3 @@ MQ:
 	}
 	return nil
 }
-
-func (rms *RabbitMQService)

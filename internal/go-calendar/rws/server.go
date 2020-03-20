@@ -11,12 +11,12 @@ import (
 )
 
 type Server struct {
-	Cfg          *config.Config
+	Cfg          config.Server
 	Logger       *zap.Logger
 	EventStorage interfaces.EventStorageProcessor
 }
 
-func NewServer(cfg *config.Config, log *zap.Logger, es interfaces.EventStorageProcessor) *Server {
+func NewServer(cfg config.Server, log *zap.Logger, es interfaces.EventStorageProcessor) *Server {
 	return &Server{
 		Cfg:          cfg,
 		Logger:       log,

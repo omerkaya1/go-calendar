@@ -1,16 +1,14 @@
 package grpc
 
 import (
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
-	"github.com/omerkaya1/go-calendar/internal/prometheus"
 	"log"
-
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/services/events"
 
 	"github.com/omerkaya1/go-calendar/internal/db"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/grpc"
+	"github.com/omerkaya1/go-calendar/internal/prometheus"
 	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
 )
@@ -54,7 +52,7 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s: InitConfig failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
 	// Logger-related part
-	logger, err := gcl.InitLogger(cfg.Level)
+	logger, err := gcl.InitLogger(cfg.Server.Level)
 	if err != nil {
 		log.Fatalf("%s: InitLogger failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
@@ -71,11 +69,11 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Init GRPC server
-	srv := grpc.NewServer(cfg, logger, esp, monitor)
+	srv := grpc.NewServer(cfg.Server, logger, esp, monitor)
 	srv.Run()
 }
 
-func dbFromConfig(dbConfig config.DBConf) (interfaces.EventStorageProcessor, error) {
+func dbFromConfig(dbConfig config.DB) (interfaces.EventStorageProcessor, error) {
 	if dbConfig.Name == "test" {
 		inMemoryDB, err := db.NewInMemoryEventStorage()
 		return inMemoryDB, err

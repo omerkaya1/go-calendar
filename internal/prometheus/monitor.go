@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"errors"
 	"fmt"
 	grpcp "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
@@ -16,11 +17,13 @@ type Monitor struct {
 }
 
 func NewMonitor(conf config.PromConf) (*Monitor, error) {
+	if !conf.Verify() {
+		return nil, errors.New("bad configuration")
+	}
 	reg := prometheus.NewRegistry()
 
-	addr := fmt.Sprintf("%s:%s", conf.Host, conf.Port)
 	server := &http.Server{
-		Addr:      addr,
+		Addr:      fmt.Sprintf("%s:%s", conf.Host, conf.Port),
 		TLSConfig: nil,
 	}
 	http.Handle("/metrics", promhttp.Handler())

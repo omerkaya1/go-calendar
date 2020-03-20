@@ -16,14 +16,14 @@ import (
 )
 
 type GoCalendarServer struct {
-	Cfg          *config.Config
+	Cfg          config.Server
 	Logger       *zap.Logger
 	EventStorage interfaces.EventStorageProcessor
 	Monitoring   *prometheus.Monitor
 }
 
 func NewServer(
-	cfg *config.Config, log *zap.Logger, es interfaces.EventStorageProcessor, m *prometheus.Monitor) *GoCalendarServer {
+	cfg config.Server, log *zap.Logger, es interfaces.EventStorageProcessor, m *prometheus.Monitor) *GoCalendarServer {
 	return &GoCalendarServer{
 		Cfg:          cfg,
 		Logger:       log,

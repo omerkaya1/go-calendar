@@ -1,14 +1,17 @@
 package main
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
 	"github.com/omerkaya1/go-calendar/internal/mq"
 	"github.com/omerkaya1/go-calendar/internal/notification/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 )
 
@@ -49,12 +52,27 @@ func startNotificationService(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s: %s", errors.ErrCMDPrefix, err)
 	}
 
-	messageQueue, err := mq.NewRabbitMQService(conf, nil, messageCounter)
+	// Handle interrupt signal
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt)
+	defer close(stopChan)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		for range stopChan {
+			cancel()
+			log.Println("context cancellation triggered. The programme's about to stop...")
+			return
+		}
+	}()
+
+	messageQueue, err := mq.NewRabbitMQService(conf.Queue, nil, messageCounter)
 	if err != nil {
 		log.Fatalf("%s: %s", errors.ErrMQPrefix, err)
 	}
 	log.Println("Notification service initialisation")
-	if err := messageQueue.EmmitMessages(); err != nil {
+	if err := messageQueue.EmmitMessages(ctx); err != nil {
 		log.Fatalf("%s: %s", errors.ErrMQPrefix, err)
 	}
+	log.Print("Buy!")
 }

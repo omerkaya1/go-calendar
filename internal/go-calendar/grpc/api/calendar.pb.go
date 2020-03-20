@@ -624,7 +624,9 @@ func init() {
 	proto.RegisterType((*ResponseSuccess)(nil), "ResponseSuccess")
 }
 
-func init() { proto.RegisterFile("api/calendar.proto", fileDescriptor_46317338ada08f2e) }
+func init() {
+	proto.RegisterFile("api/calendar.proto", fileDescriptor_46317338ada08f2e)
+}
 
 var fileDescriptor_46317338ada08f2e = []byte{
 	// 531 bytes of a gzipped FileDescriptorProto
@@ -666,11 +668,11 @@ var fileDescriptor_46317338ada08f2e = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // GoCalendarServerClient is the client API for GoCalendarServer service.
 //
@@ -691,10 +693,10 @@ type GoCalendarServerClient interface {
 }
 
 type goCalendarServerClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewGoCalendarServerClient(cc *grpc.ClientConn) GoCalendarServerClient {
+func NewGoCalendarServerClient(cc grpc.ClientConnInterface) GoCalendarServerClient {
 	return &goCalendarServerClient{cc}
 }
 

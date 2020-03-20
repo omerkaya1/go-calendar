@@ -22,32 +22,27 @@ const (
 // GetEvent handles RWS requests to retrieve events
 func (s *Server) GetEvent(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	params := mux.Vars(r)
 
-	if idParam, ok := params["id"]; ok {
+	if idParam, ok := mux.Vars(r)["id"]; !ok {
+		s.formResponse(rw, errors.ErrURLPathParameters, http.StatusBadRequest, "")
+		return
+	} else {
 		id, err := validators.ValidateID(idParam)
 		if err != nil {
 			s.formResponse(rw, err, http.StatusBadRequest, "")
 			return
 		}
 
-		event, err := s.EventService.GetEvent(context.Background(), id)
+		event, err := s.EventStorage.GetEventByID(context.Background(), id)
 		if err != nil {
 			s.formResponse(rw, err, http.StatusInternalServerError, "")
 			return
 		}
 
-		resp, err := json.Marshal(event)
-		if err != nil {
+		if err := json.NewEncoder(rw).Encode(event); err != nil {
 			s.formResponse(rw, err, http.StatusInternalServerError, "")
-			return
 		}
-		if n, err := rw.Write(resp); err != nil {
-			s.Logger.Sugar().Infof("%s: %s, %d bytes were written", errors.ErrAPIPrefix, err, n)
-		}
-		return
 	}
-	s.formResponse(rw, errors.ErrURLPathParameters, http.StatusBadRequest, "")
 }
 
 // CreateEvent handles RWS requests to create events
@@ -74,7 +69,7 @@ func (s *Server) CreateEvent(rw http.ResponseWriter, r *http.Request) {
 
 	req := models.NewEvent(event.UserName, event.EventName, event.Note, startTime, endTime)
 
-	eventID, err := s.EventService.CreateEvent(context.Background(), req)
+	eventID, err := s.EventStorage.CreateEvent(context.Background(), req)
 	if err != nil {
 		s.formResponse(rw, err, http.StatusInternalServerError, "")
 		return
@@ -123,7 +118,7 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 		EndTime:   finish,
 	}
 
-	eventID, err := s.EventService.UpdateEvent(context.Background(), req)
+	eventID, err := s.EventStorage.UpdateEventByID(context.Background(), id, req)
 	if err != nil {
 		s.formResponse(rw, err, http.StatusInternalServerError, "")
 		return
@@ -134,28 +129,26 @@ func (s *Server) UpdateEvent(rw http.ResponseWriter, r *http.Request) {
 // DeleteEvent handles RWS requests to delete existing events
 func (s *Server) DeleteEvent(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	params := mux.Vars(r)
 
-	id, err := validators.ValidateID(params["id"])
+	id, err := validators.ValidateID(mux.Vars(r)["id"])
 	if err != nil {
 		s.formResponse(rw, err, http.StatusBadRequest, "")
 		return
 	}
 
-	if err := s.EventService.DeleteEvent(context.Background(), id); err != nil {
+	if err := s.EventStorage.DeleteEventById(context.Background(), id); err != nil {
 		s.formResponse(rw, err, http.StatusInternalServerError, "")
 		return
 	}
 	s.formResponse(rw, err, http.StatusInternalServerError, fmt.Sprintf("the event with id %s was deleted", id))
 }
 
-// DeleteEvent handles RWS requests to delete existing events
+// DeleteExpiredEvents handles RWS requests to delete existing events
 func (s *Server) DeleteExpiredEvents(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	params := mux.Vars(r)
 
-	if user, ok := params["user"]; ok {
-		n, err := s.EventService.DeleteOldEvents(context.Background(), user)
+	if user, ok := mux.Vars(r)["user"]; ok {
+		n, err := s.EventStorage.DeleteExpiredEvents(context.Background(), user)
 		if err != nil {
 			s.formResponse(rw, err, http.StatusInternalServerError, "")
 			return
@@ -166,29 +159,23 @@ func (s *Server) DeleteExpiredEvents(rw http.ResponseWriter, r *http.Request) {
 	s.formResponse(rw, errors.ErrURLPathParameters, http.StatusBadRequest, "")
 }
 
-// GetEvent handles RWS requests to retrieve events
+// GetUserEvents handles RWS requests to retrieve events
 func (s *Server) GetUserEvents(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	params := mux.Vars(r)
 
-	if user, ok := params["user"]; ok {
-		event, err := s.EventService.GetEventsList(context.Background(), user)
-		if err != nil {
-			s.formResponse(rw, err, http.StatusInternalServerError, "")
-			return
-		}
-
-		resp, err := json.Marshal(event)
-		if err != nil {
-			s.formResponse(rw, err, http.StatusInternalServerError, "")
-			return
-		}
-		if n, err := rw.Write(resp); err != nil {
-			s.Logger.Sugar().Infof("%s: %s, %d bytes were written", errors.ErrAPIPrefix, err, n)
-		}
+	if user, ok := mux.Vars(r)["user"]; ok {
+		s.formResponse(rw, errors.ErrURLPathParameters, http.StatusBadRequest, "")
 		return
+	} else {
+		event, err := s.EventStorage.GetUserEvents(context.Background(), user)
+		if err != nil {
+			s.formResponse(rw, err, http.StatusInternalServerError, "")
+			return
+		}
+		if err := json.NewEncoder(rw).Encode(event); err != nil {
+			s.formResponse(rw, err, http.StatusInternalServerError, "")
+		}
 	}
-	s.formResponse(rw, errors.ErrURLPathParameters, http.StatusBadRequest, "")
 }
 
 func (s *Server) formResponse(rw http.ResponseWriter, err error, code int, message string) {

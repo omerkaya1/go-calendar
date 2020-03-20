@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/DATA-DOG/godog"
-	"github.com/omerkaya1/go-calendar/internal/integration-tests/calendar"
-	"github.com/omerkaya1/go-calendar/internal/integration-tests/notification"
 	"os"
 	"time"
+
+	"github.com/cucumber/godog"
+	"github.com/omerkaya1/go-calendar/internal/integration-tests/calendar"
+	"github.com/omerkaya1/go-calendar/internal/integration-tests/notification"
 )
 
 func main() {
 	status := 1
 	fmt.Println("Waiting for all services to become available...")
+	// TODO: Create a basic script that will ping the PostgreSQL DB instead of using a sleep here
 	time.Sleep(time.Second * 30)
 
 	status = godog.RunWithOptions("calendar API", func(s *godog.Suite) {

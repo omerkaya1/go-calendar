@@ -19,7 +19,7 @@ func (s *GoCalendarServer) CreateEvent(ctx context.Context, req *gca.CreateEvent
 		return parsers.MapToProtoResponseWithID(uuid.UUID{}, err), nil
 	}
 	// Request to the EventService to create an event
-	eventID, err := s.EventService.CreateEvent(ctx, event)
+	eventID, err := s.EventStorage.CreateEvent(ctx, event)
 	if err != nil {
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		if berr, ok := err.(errors.GoCalendarError); ok {
@@ -39,7 +39,7 @@ func (s *GoCalendarServer) GetEvent(ctx context.Context, req *gca.RequestEventBy
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		return nil, err
 	}
-	event, err := s.EventService.GetEvent(ctx, id)
+	event, err := s.EventStorage.GetEventByID(ctx, id)
 	if err != nil {
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		if berr, ok := err.(errors.GoCalendarError); ok {
@@ -56,7 +56,7 @@ func (s *GoCalendarServer) GetUserEvents(ctx context.Context, req *gca.RequestUs
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, errors.ErrBadRequest)
 		return nil, errors.ErrBadRequest
 	}
-	events, err := s.EventService.GetEventsList(ctx, req.GetUserName())
+	events, err := s.EventStorage.GetUserEvents(ctx, req.GetUserName())
 	if err != nil {
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		if berr, ok := err.(errors.GoCalendarError); ok {
@@ -77,7 +77,7 @@ func (s *GoCalendarServer) UpdateEvent(ctx context.Context, req *gca.Event) (*gc
 		return parsers.MapToProtoResponseWithID(uuid.UUID{}, err), nil
 	}
 	// Request to the EventService to update an event
-	eventID, err := s.EventService.UpdateEvent(ctx, event)
+	eventID, err := s.EventStorage.UpdateEventByID(ctx, event.EventID, event)
 	if err != nil {
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		if berr, ok := err.(errors.GoCalendarError); ok {
@@ -97,7 +97,7 @@ func (s *GoCalendarServer) DeleteEvent(ctx context.Context, req *gca.RequestEven
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		return nil, err
 	}
-	if err := s.EventService.DeleteEvent(ctx, id); err != nil {
+	if err := s.EventStorage.DeleteEventById(ctx, id); err != nil {
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		if berr, ok := err.(errors.GoCalendarError); ok {
 			return parsers.MapToProtoResponseSuccess("", berr), nil
@@ -114,7 +114,7 @@ func (s *GoCalendarServer) DeleteExpiredEvents(ctx context.Context, req *gca.Req
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, errors.ErrBadRequest)
 		return nil, errors.ErrBadRequest
 	}
-	n, err := s.EventService.DeleteOldEvents(ctx, req.GetUserName())
+	n, err := s.EventStorage.DeleteExpiredEvents(ctx, req.GetUserName())
 	if err != nil {
 		s.Logger.Sugar().Errorf("%s: %s", errors.ErrAPIPrefix, err)
 		if berr, ok := err.(errors.GoCalendarError); ok {

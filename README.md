@@ -103,13 +103,15 @@ expressions useful for creating line graphs from the received metrics.
 ## TODO:
 1. Refactoring:
     - DB methods;
+    ~~- contextualise the app;~~
     - internal package;
 2. Add UI:
     - Angular
     - Vue.js ???
-3. Add Kafka MQ implementation;
-4. Add Redis implementation;
-5. Add Swagger implementation;
-6. Add Meta linter to the project (golang-ci lint);
-7. Error wrapping ???;
-8. CI implementation.
+3. Create a basic script that will ping the PostgreSQL DB instead of using a sleep
+4. Add Kafka MQ implementation and modify the existing MQ interface;
+5. Add Redis implementation;
+6. Add Swagger implementation;
+7. Add Meta linter to the project (golang-ci lint);
+8. Error wrapping ???;
+9. CI implementation.

@@ -19,8 +19,8 @@ type MainEventStorage struct {
 }
 
 // NewMainEventStorage returns new MainEventStorage object to the callee
-func NewMainEventStorage(cfg config.DBConf) (interfaces.EventStorageProcessor, error) {
-	if cfg.Name == "" || cfg.User == "" || cfg.SSL == "" || cfg.Password == "" {
+func NewMainEventStorage(cfg config.DB) (interfaces.EventStorageProcessor, error) {
+	if !cfg.Verify() {
 		return nil, errors.ErrBadDBConfiguration
 	}
 	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslmode=%s",

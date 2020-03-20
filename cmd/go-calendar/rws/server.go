@@ -3,12 +3,10 @@ package rws
 import (
 	"log"
 
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
-	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/services/events"
-
 	"github.com/omerkaya1/go-calendar/internal/db"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/config"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/errors"
+	"github.com/omerkaya1/go-calendar/internal/go-calendar/domain/interfaces"
 	"github.com/omerkaya1/go-calendar/internal/go-calendar/rws"
 	gcl "github.com/omerkaya1/go-calendar/log"
 	"github.com/spf13/cobra"
@@ -53,7 +51,7 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 		log.Fatalf("%s: InitConfig failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
 	// Logger-related part
-	logger, err := gcl.InitLogger(cfg.Level)
+	logger, err := gcl.InitLogger(cfg.Server.Level)
 	if err != nil {
 		log.Fatalf("%s: InitLogger failed: %s", errors.ErrServiceCmdPrefix, err)
 	}
@@ -64,11 +62,11 @@ func serverStartCmdFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Init RWS server
-	srv := rws.NewServer(cfg, logger, esp)
+	srv := rws.NewServer(cfg.Server, logger, esp)
 	srv.Run()
 }
 
-func dbFromConfig(dbConfig config.DBConf) (interfaces.EventStorageProcessor, error) {
+func dbFromConfig(dbConfig config.DB) (interfaces.EventStorageProcessor, error) {
 	if dbConfig.Name == "test" {
 		inMemoryDB, err := db.NewInMemoryEventStorage()
 		return inMemoryDB, err
