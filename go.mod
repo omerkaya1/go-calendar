@@ -6,7 +6,7 @@ require (
 	github.com/DATA-DOG/godog v0.7.13
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.7.3
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
@@ -21,6 +21,5 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.2.0 // indirect
 	go.uber.org/zap v1.10.0
-	google.golang.org/appengine v1.6.5 // indirect
-	google.golang.org/grpc v1.24.0
+	google.golang.org/grpc v1.53.0
 )
